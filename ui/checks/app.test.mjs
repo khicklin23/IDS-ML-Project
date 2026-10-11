@@ -28,8 +28,8 @@ test('real report renders evaluation without a training panel',()=>{
   assert.equal(get('dashboard').hidden,false);
   assert.ok(get('metrics').innerHTML.includes(report.dataset.manifest.row_count.toLocaleString('en-US')));
   assert.match(get('comparison-note').textContent,/false positives/);
-  assert.match(get('evidence-note').textContent,/One v4 session prediction/);
-  assert.match(get('detector-note').textContent,/not independent predictions/);
+  assert.match(get('evidence-note').textContent,/One Sona session prediction/);
+  assert.doesNotMatch(get('detector-note').textContent,/One model reads/);
   assert.ok(get('disposition-summary').innerHTML.includes(report.binary_model.test_metrics.confusion_matrix.tn.toLocaleString('en-US')));
   assert.match(get('disposition-summary').innerHTML,/correctly left unflagged/);
   assert.ok(get('disposition-summary').innerHTML.includes(`${report.binary_model.test_metrics.confusion_matrix.fp.toLocaleString('en-US')} benign flows`));
@@ -69,22 +69,12 @@ test('inline alert/session navigation and recorded incidents work',async()=>{
   assert.match(get('detail-body').innerHTML,/Related alerts/);
   await get('detail-body').buttons[0].fire('click');
   assert.equal(get('detail-title').textContent,'Alert investigation');
-  await get('download-report').fire('click');assert.equal(downloadLink.download,`${report.run_id}-report.json`);
 });
-test('invalid import preserves the current report, then empty samples render honestly',async()=>{
-  const oldMetrics=get('metrics').innerHTML;
-  get('report-upload').files=[{name:'bad.json',size:20,text:async()=>'{broken'}];
-  await get('report-upload').fire('change');
-  assert.equal(get('metrics').innerHTML,oldMetrics);
-  assert.match(get('status').textContent,/previous report remains/);
-  const empty=structuredClone(report);empty.alerts.sample=[];empty.dataset.sample_flows=[];
-  empty.run_id='<script>alert(1)</script>';
-  empty.multiclass_model.test_metrics.per_class.beaconing={precision:0,recall:0,f1:0,support:0};
-  get('report-upload').files=[{name:'empty.json',size:50,text:async()=>JSON.stringify(empty)}];
-  await get('report-upload').fire('change');
-  assert.match(get('table-body').innerHTML,/No recorded incidents/);
-  assert.match(get('class-note').textContent,/No held-out examples/);
-  assert.match(get('run-meta').innerHTML,/&lt;script&gt;/);
-  assert.doesNotMatch(get('run-meta').innerHTML,/<script>/);
-  assert.equal(get('status').hidden,true);
+test('public overview omits report-management controls and run metadata',async()=>{const html=await readFile(new URL('../index.html',import.meta.url),'utf8');assert.doesNotMatch(html,/id="(?:report-upload|download-report|run-meta)"/);assert.match(html,/class="sona-title">Sona/);});
+
+test('classification and dataset panels display the current report values',()=>{
+ for(const [name,n] of Object.entries(report.dataset.manifest.scenario_counts))assert.ok(get('composition').innerHTML.includes(n.toLocaleString('en-US')));
+ for(const n of Object.values(report.dataset.split_sizes))assert.ok(get('dataset-details').innerHTML.includes(n.toLocaleString('en-US')));
+ assert.ok(get('dataset-details').innerHTML.includes(report.dataset.manifest.row_count.toLocaleString('en-US')));
+ for(const row of report.multiclass_model.test_metrics.confusion_matrix)for(const n of row)assert.ok(get('confusion').innerHTML.includes(n.toLocaleString('en-US')));
 });

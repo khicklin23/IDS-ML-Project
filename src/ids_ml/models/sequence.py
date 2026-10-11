@@ -46,6 +46,8 @@ class SequenceTrainConfig:
     patience: int = 10
     batch_size: int = 32
     class_weight: bool = True
+    min_epochs: int = 0
+    class_weight_power: float = 1.0
 
 
 def _set_seed(seed: int) -> None:
@@ -70,6 +72,10 @@ def train_sequence_model(
     validation-based early stopping, history log) but batched over
     sessions with variable-length packed sequences instead of flat rows.
     """
+    if not 0 <= config.min_epochs <= config.max_epochs:
+        raise ValueError('min_epochs must be between zero and max_epochs.')
+    if not 0 <= config.class_weight_power <= 1:
+        raise ValueError('class_weight_power must be between zero and one.')
     _set_seed(config.seed)
 
     model = SequenceClassifier(input_dim=X_train.shape[-1], num_classes=num_classes, hidden_dim=config.hidden_dim)
@@ -79,7 +85,7 @@ def train_sequence_model(
     if config.class_weight:
         counts = np.bincount(y_train, minlength=num_classes).astype(np.float64)
         counts[counts == 0] = 1.0
-        inverse = 1.0 / counts
+        inverse = (1.0 / counts) ** config.class_weight_power
         class_weights = torch.tensor(inverse * (num_classes / inverse.sum()), dtype=torch.float32)
     loss_fn = nn.CrossEntropyLoss(weight=class_weights)
 
@@ -131,7 +137,7 @@ def train_sequence_model(
             best_state = copy.deepcopy(model.state_dict())
             best_epoch = epoch
             epochs_without_improvement = 0
-        else:
+        elif epoch + 1 >= config.min_epochs:
             epochs_without_improvement += 1
             if epochs_without_improvement >= config.patience:
                 break

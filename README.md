@@ -78,16 +78,16 @@ Evaluation separates whole sessions across training, validation, and testing, wi
 
 ## Model versions (v1, v2, v3, v4)
 
-Instead of just retraining the model over and over and overwriting it, we keep each attempt around so we can actually measure whether a change helped—not just assume it did. So far there are four versions:
+Each training attempt is saved separately so changes can be measured against earlier results. There are four versions:
 
 | Version | What it is | What changed from the last one |
 | --- | --- | --- |
 | **v1** | The starting point. | — (baseline) |
 | **v2** | The same model design as v1. | Trained on a mix of normal attacks *and* "stealth mode" versions of them—the same attacks, just slowed down and spread out to avoid standing out, the way a real attacker might try to sneak past detection. |
-| **v3** | A different kind of model. | Instead of looking at one network connection ("flow") at a time, it looks at a whole group of related connections in order, like watching a short clip instead of a single snapshot. We used a small **GRU** (a type of neural network built to remember what it saw a moment ago, so it can notice patterns *over time*, not just in one instant) to do this. Trained the same way as v1—no stealth examples. |
+| **v3** | A different kind of model. | Instead of looking at one network connection ("flow") at a time, it looks at a whole group of related connections in order, like watching a short clip instead of a single snapshot. It uses a small **GRU** (a type of neural network built to remember what it saw a moment ago, so it can notice patterns *over time*, not just in one instant) to do this. Trained the same way as v1—no stealth examples. |
 | **v4** | Same "watch a clip" model as v3. | Combined with v2's idea: also trained on the slowed-down, sneaky examples. Two separate improvements, stacked together. |
 
-**What we found when we tested all four against sneaky, slowed-down attacks** (measured as **macro F1**: a balanced score, out of 100%, that gives every attack type equal weight so a model can't hide a weak spot behind a strong one):
+**Results from testing all four against sneaky, slowed-down attacks** (measured as **macro F1**: a balanced score, out of 100%, that gives every attack type equal weight so a model can't hide a weak spot behind a strong one):
 
 | | v1 | v2 | v3 | v4 |
 | --- | --- | --- | --- | --- |
@@ -96,10 +96,10 @@ Instead of just retraining the model over and over and overwriting it, we keep e
 
 - **v1** struggled with the sneaky versions—barely better than a coin flip on some of them—even though it was very good at the normal-pace versions of the same attacks.
 - **v2** (trained on some sneaky examples) caught essentially all of them. Giving the model better examples to learn from fixed most of the problem.
-- **v3** (same "watch a clip" idea, but never trained on a single sneaky example) did only a little better than v1, not the "noticeably better" result we first reported. That first measurement had a bug: the model was only being shown the first 50 connections of each group, and real groups often run much longer, so it was missing most of exactly the longer, sneakier sessions it needed to see. Once that was fixed, seeing a sequence of connections instead of one at a time turned out to give only a small amount of natural resistance to the pacing trick on its own.
-- **v4** stacks both fixes—the "watch a clip" model design *and* training on sneaky examples—and gets every single sneaky, slowed-down attack type right, including the one (slow, spaced-out "beaconing" traffic, where an already-infected machine checks in with an attacker every so often) that every earlier version struggled with most. On normal-pace traffic it misses a small handful (99.1%, not literally every one)—we found and fixed a second bug while double-checking this (two independently-generated batches of traffic could accidentally reuse the same group ID, blurring two unrelated sessions together when combined for training); the corrected number is this 99.1%, not the flat 100% first reported.
+- **v3** (same "watch a clip" idea, but never trained on a single sneaky example) did only a little better than v1, not the "noticeably better" result initially reported. That first measurement had a bug: the model was only being shown the first 50 connections of each group, and real groups often run much longer, so it was missing most of exactly the longer, sneakier sessions it needed to see. Once that was fixed, seeing a sequence of connections instead of one at a time turned out to give only a small amount of natural resistance to the pacing trick on its own.
+- **v4** stacks both fixes—the "watch a clip" model design *and* training on sneaky examples—and gets every single sneaky, slowed-down attack type right, including the one (slow, spaced-out "beaconing" traffic, where an already-infected machine checks in with an attacker every so often) that every earlier version struggled with most. On normal-pace traffic it misses a small handful (99.1%, not literally every one)—a second bug was found and fixed while checking this (two independently-generated batches of traffic could accidentally reuse the same group ID, blurring two unrelated sessions together when combined for training); the corrected number is this 99.1%, not the flat 100% first reported.
 
-The takeaway: there are two different ways to make this kind of model better—give it better examples to learn from (v2), or give it a better "view" of the data (v3)—and they stack. Neither one alone fully solved the hardest attack type; both together (v4) did. All four versions are saved on disk separately so we can always go back and compare them later. (One honest caveat: these scores are from held-out test examples generated the same way as training data, not a truly different kind of network traffic—so "perfect" here means "perfect on this test," not "will never miss anything.")
+The takeaway: there are two different ways to make this kind of model better—give it better examples to learn from (v2), or give it a better "view" of the data (v3)—and they stack. Neither one alone fully solved the hardest attack type; both together (v4) did. All four versions are saved on disk separately so they can be compared again later. (One honest caveat: these scores are from held-out test examples generated the same way as training data, not a truly different kind of network traffic—so "perfect" here means "perfect on this test," not "will never miss anything.")
 
 ## Project map
 
@@ -121,6 +121,4 @@ Dashboard checks: `cd ui && npm run check`. See the [UI guide](ui/README.md) for
 
 ---
 
-[Product vision](docs/PRODUCT_VISION.md) · [How training works](docs/HOW_TRAINING_WORKS.md) · [Agent workflow](AGENTS.md) · [Current handoff](docs/HANDOFF.md)
-
-Agents read these documents and the Git-kb workspace before changing shared files.
+[How training works](docs/HOW_TRAINING_WORKS.md)

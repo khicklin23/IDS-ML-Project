@@ -1,3 +1,4 @@
+export const modelName = id => ({v1:'Beta 1', v2:'Beta 2', v3:'Beta 3', v4:'Sona'}[id] ?? String(id ?? 'Model'));
 export const colors = ['#718096', '#7c65a3', '#3471ac', '#448778', '#a77b35', '#a74b58'];
 export const human = value => String(value ?? 'Unavailable').replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 export const count = value => Number.isFinite(value) ? value.toLocaleString('en-US') : '—';

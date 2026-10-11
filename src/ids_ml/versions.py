@@ -87,11 +87,12 @@ def run_comparison(
     train_config: TrainConfig | None = None,
     sequence_config: SequenceTrainConfig | None = None,
     max_seq_len: int | None = None,
+    sona_timing_mode: str = 'absolute',
 ) -> dict:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     train_config = train_config or TrainConfig(seed=seed)
-    sequence_config = sequence_config or SequenceTrainConfig(seed=seed)
+    sequence_config = sequence_config or SequenceTrainConfig(seed=seed, min_epochs=45)
 
     normal_config = GenerationConfig(
         seed=seed, num_hosts=num_hosts, duration_minutes=duration_minutes, background_rate_per_min=60.0,
@@ -217,10 +218,12 @@ def run_comparison(
     }
 
     # ---------------- v4: session-level GRU, normal+stealth mixed training (v2's recipe) ----------------
-    mixed_train_seq = build_session_sequences(mixed_train, v2_preprocessor, CLASS_NAMES, max_len=max_seq_len)
-    mixed_val_seq = build_session_sequences(mixed_val, v2_preprocessor, CLASS_NAMES, max_len=max_seq_len)
-    v4_test_seq = build_session_sequences(normal_test, v2_preprocessor, CLASS_NAMES, max_len=max_seq_len)
-    v4_stealth_test_seq = build_session_sequences(stealth_test, v2_preprocessor, CLASS_NAMES, max_len=max_seq_len)
+    v4_preprocessor = (build_preprocessor(mixed_train, timing_mode=sona_timing_mode)
+                       if sona_timing_mode != 'absolute' else v2_preprocessor)
+    mixed_train_seq = build_session_sequences(mixed_train, v4_preprocessor, CLASS_NAMES, max_len=max_seq_len)
+    mixed_val_seq = build_session_sequences(mixed_val, v4_preprocessor, CLASS_NAMES, max_len=max_seq_len)
+    v4_test_seq = build_session_sequences(normal_test, v4_preprocessor, CLASS_NAMES, max_len=max_seq_len)
+    v4_stealth_test_seq = build_session_sequences(stealth_test, v4_preprocessor, CLASS_NAMES, max_len=max_seq_len)
 
     v4_model, v4_history = train_sequence_model(
         mixed_train_seq[0], mixed_train_seq[1], mixed_train_seq[2],
@@ -235,17 +238,24 @@ def run_comparison(
     )
 
     torch.save(v4_model.state_dict(), out_dir / "v4_model.pt")
+    from ids_ml.features import save_preprocessor
+    save_preprocessor(v4_preprocessor, out_dir / 'v4_preprocessor.pkl')
     (out_dir / "v4_metadata.json").write_text(json.dumps({
         "architecture": "GRU (session-level)",
         "hidden_dim": sequence_config.hidden_dim,
         "max_seq_len": max_seq_len,
         "class_names": CLASS_NAMES,
+        "timing_mode": sona_timing_mode,
+        "input_dim": mixed_train_seq[0].shape[-1],
+        "feature_names": v4_preprocessor.get_feature_names_out().tolist(),
+        "train_config": dataclasses.asdict(sequence_config),
     }, indent=2))
 
     versions["v4"] = {
         "description": "session-level GRU, normal+stealth mixed training (v2's recipe) -- architecture fix + training fix combined",
         "architecture": "GRU (session-level)",
         "training_recipe": "normal+stealth mixed",
+        "timing_mode": sona_timing_mode,
         "normal_flow_metrics": None,
         "normal_session_metrics": v4_normal_session,
         "stealth_session_metrics": v4_stealth_session,

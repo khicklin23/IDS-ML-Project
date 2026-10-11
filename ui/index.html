@@ -5,35 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f6f8">
   <meta name="description" content="A neural intrusion detection research dashboard. Explore precomputed model results, synthetic network flows, and alert evidence.">
-  <title>IDS Monitor</title>
-  <link rel="stylesheet" href="styles.css?v=v4-20261011-3">
-  <script type="module" src="app.js?v=v4-20261011-3"></script>
+  <title>Sona · Detection overview</title>
+  <link rel="stylesheet" href="styles.css?v=sona-ui-cleanup-1">
+  <script type="module" src="app.js?v=sona-ui-cleanup-1"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to dashboard</a>
   <header class="topbar">
-    <a class="brand" href="index.html"><span class="brand-mark">▥</span><strong>IDS Monitor</strong><span class="workspace-label">Research workspace</span></a>
-    <nav aria-label="Main navigation"><a href="index.html" aria-current="page">Overview</a><a href="raw.html">Raw data</a><a href="model.html">Model explained</a><a href="progression.html">Model progression</a></nav>
+    <a class="brand" href="index.html"><span class="brand-mark">▥</span><strong>Sona</strong><span class="workspace-label">Neural network IDS</span></a>
+    <nav aria-label="Main navigation"><a href="index.html" aria-current="page">Overview</a><a href="model.html">Model explained</a><a href="progression.html">Model progression</a><a id="dataset-link" href="raw.html" class="nav-raw button primary">Browse full dataset</a></nav>
   </header>
   <main id="main">
     <section id="overview" class="intro">
-      <div><p class="breadcrumb">Workspace / Network monitoring</p><h1>Network activity</h1><p class="intro-copy">Review saved detection results, classification errors, and alert evidence.</p></div>
-      <a id="dataset-link" class="button primary" href="raw.html">Browse full dataset</a>
+      <div><p class="breadcrumb">NEURAL NETWORK INTRUSION DETECTION</p><h1 class="sona-title">Sona<span>Network activity, understood.</span></h1><p class="intro-copy">The model learns from related connections to distinguish ordinary traffic from simulated attacks. Explore its results and the evidence behind them.</p></div>
     </section>
-    <p id="detector-note" class="callout"></p>
-    <div class="run-meta" id="run-meta">Loading detection snapshot…</div>
-    <div class="toolbar"><div class="toolbar-title"><span class="dot"></span><span id="source-label">Bundled showcase report</span></div><div class="actions"><label class="button" for="report-upload">↑ Load report<input id="report-upload" type="file" accept=".json,application/json" class="file-input"></label><button id="download-report" type="button" disabled>↓ Export report</button></div></div>
     <div id="status" role="status" class="status">Reading the completed experiment…</div>
     <div id="dashboard" hidden>
       <section id="performance" class="section-block overview-performance">
         <div class="section-heading"><div><p class="eyebrow">MODEL EVALUATION</p><h2>Detection performance</h2></div><span class="section-note" id="test-count"></span></div>
-<article class="panel"><div class="panel-heading"><div><h3>Neural vs. rule-based detection</h3><p>Normal / suspicious decisions · same test flows</p></div><span class="badge inference">MODEL INFERENCE</span></div><div class="chart-legend"><span><i class="cyan"></i>Neural detector</span><span><i class="slate"></i>Rule baseline · comparison only</span></div><div id="comparison"></div><p id="comparison-note" class="callout"></p></article>
+<article class="panel"><div class="panel-heading"><div><h3>Neural vs. rule-based detection</h3><p>Normal / suspicious decisions · same test flows</p></div><span class="badge inference">MODEL INFERENCE</span></div><p class="baseline-explanation">Sona learns from examples of related connections. The rule baseline is one fixed check: flag a rejected or timed-out connection only if it lasts less than one second and sends at most three packets. It is a simple comparison—not a complete commercial IDS—and misses attacks outside that pattern.</p><div class="chart-legend"><span><i class="cyan"></i>Neural detector</span><span><i class="slate"></i>Rule baseline · comparison only</span></div><div id="comparison"></div><p id="comparison-note" class="callout"></p></article>
       </section>
-      <section id="detection-records" class="section-block"><div class="section-heading"><div><p class="eyebrow">SAVED RUN</p><h2>Detection records</h2></div><span class="section-note">Saved v4 session model</span></div>
+      <section id="classification" class="section-block"><div class="section-heading"><div><p class="eyebrow">RESULTS & DATA</p><h2>Classification & dataset summary</h2></div></div><div class="grid overview-classification"><article class="panel"><div class="panel-heading"><div><h3>Attack-family recognition</h3><p>Held-out showcase flows · family predictions</p></div><span class="badge inference">MODEL INFERENCE</span></div><div id="class-performance"></div><p id="class-note" class="footnote"></p></article><article class="panel"><div class="panel-heading"><div><h3>Classification errors</h3><p>Ground-truth rows × model-prediction columns</p></div><span class="badge evaluation">EVALUATION</span></div><div class="matrix-wrap" id="confusion"></div><p class="footnote">Counts from the showcase’s held-out flows. Brighter cells mean a larger share of that ground-truth class. Hover or focus a cell for its count.</p></article><article class="panel"><div class="panel-heading"><div><h3>Dataset summary</h3><p>Complete showcase dataset</p></div><span class="badge truth">GROUND TRUTH</span></div><div id="composition"></div><div id="dataset-details" class="detail-list"></div><p class="footnote">Synthetic scenario labels are supplied by the generator. They are not detector discoveries.</p></article></div></section>
+      <section id="detection-records" class="section-block"><div class="section-heading"><div><p class="eyebrow">DETECTION</p><h2>Detection records</h2></div><span class="section-note">Saved Sona session model</span></div>
       <div class="metrics" id="metrics"></div>
       <section class="traffic-dispositions" aria-label="Normal traffic versus detections"><div id="disposition-summary" class="disposition-grid"></div><p id="disposition-note" class="footnote"></p></section>
       </section>
-      <section id="classification" class="section-block"><div class="section-heading"><div><p class="eyebrow">RESULTS & DATA</p><h2>Classification & dataset summary</h2></div></div><div class="grid overview-classification"><article class="panel"><div class="panel-heading"><div><h3>Attack-family recognition</h3><p>Family predictions · correct guesses and missed examples</p></div><span class="badge inference">MODEL INFERENCE</span></div><div id="class-performance"></div><p id="class-note" class="footnote"></p></article><article class="panel"><div class="panel-heading"><div><h3>Classification errors</h3><p>Ground-truth rows × model-prediction columns</p></div><span class="badge evaluation">EVALUATION</span></div><div class="matrix-wrap" id="confusion"></div><p class="footnote">Counts from the held-out set. Brighter cells mean a larger share of that ground-truth class. Hover or focus a cell for its count.</p></article><article class="panel"><div class="panel-heading"><div><h3>Dataset summary</h3><p>Dataset composition & provenance</p></div><span class="badge truth">GROUND TRUTH</span></div><div id="composition"></div><div id="dataset-details" class="detail-list"></div><p class="footnote">Synthetic scenario labels are supplied by the generator. They are not detector discoveries.</p></article></div></section>
       <section id="evidence" class="section-block">
         <div class="section-heading"><div><p class="eyebrow">INVESTIGATION</p><h2>Alerts & incidents</h2></div><span class="section-note">Inspect precomputed records · no live traffic</span></div>
         <article class="panel evidence-panel">

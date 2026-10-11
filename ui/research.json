@@ -1,0 +1,876 @@
+{
+  "research_version": 1,
+  "public_model_replaced": false,
+  "studies": [
+    {
+      "title": "Pace and noise: matched follow-up",
+      "explanation": "Nine Sona candidates were trained on three independently generated datasets. Each preparation receives the same traffic and training settings. Seconds keeps the original gap. Compressed makes large gaps less extreme. Relative compares each gap with the session\u2019s average pace and removes absolute speed. These are class guesses, not threshold-based alert scores. Higher scores mean more correct session guesses; on harmless polling, they mean fewer false alerts. Polling ranges describe the configured base pace; individual gaps vary. Small numbers below each score show the range across three runs.",
+      "generated_flows": 2171844,
+      "seeds": [
+        701,
+        733,
+        769
+      ],
+      "models": [
+        {
+          "id": "beta2",
+          "label": "Beta 2"
+        },
+        {
+          "id": "hybrid",
+          "label": "Sona \u00b7 seconds"
+        },
+        {
+          "id": "hybrid_log",
+          "label": "Sona \u00b7 compressed"
+        },
+        {
+          "id": "relative",
+          "label": "Sona \u00b7 relative"
+        },
+        {
+          "id": "timing_summary",
+          "label": "Timing summaries"
+        }
+      ],
+      "rows": [
+        {
+          "label": "Same flows, different order",
+          "beta2": 0.5,
+          "sona": 0.9838888888888889,
+          "sona_min": 0.9766666666666667,
+          "sona_max": 0.9891666666666666,
+          "sessions": 3600,
+          "scores": {
+            "beta2": {
+              "mean": 0.5,
+              "min": 0.5,
+              "max": 0.5
+            },
+            "timing_summary": {
+              "mean": 0.9111111111111111,
+              "min": 0.9058333333333334,
+              "max": 0.915
+            },
+            "hybrid": {
+              "mean": 0.9861111111111112,
+              "min": 0.9666666666666667,
+              "max": 0.9975
+            },
+            "hybrid_log": {
+              "mean": 0.9838888888888889,
+              "min": 0.9766666666666667,
+              "max": 0.9891666666666666
+            },
+            "relative": {
+              "mean": 0.9900000000000001,
+              "min": 0.9858333333333333,
+              "max": 0.9925
+            }
+          }
+        },
+        {
+          "label": "Heavier timing noise",
+          "beta2": 0.5,
+          "sona": 0.9555555555555556,
+          "sona_min": 0.9475,
+          "sona_max": 0.9666666666666667,
+          "sessions": 3600,
+          "scores": {
+            "beta2": {
+              "mean": 0.5,
+              "min": 0.5,
+              "max": 0.5
+            },
+            "timing_summary": {
+              "mean": 0.8694444444444445,
+              "min": 0.8575,
+              "max": 0.89
+            },
+            "hybrid": {
+              "mean": 0.9500000000000001,
+              "min": 0.935,
+              "max": 0.9641666666666666
+            },
+            "hybrid_log": {
+              "mean": 0.9555555555555556,
+              "min": 0.9475,
+              "max": 0.9666666666666667
+            },
+            "relative": {
+              "mean": 0.966388888888889,
+              "min": 0.9641666666666666,
+              "max": 0.9675
+            }
+          }
+        },
+        {
+          "label": "Noise beyond training",
+          "beta2": 0.5,
+          "sona": 0.7766666666666667,
+          "sona_min": 0.7733333333333333,
+          "sona_max": 0.78,
+          "sessions": 3600,
+          "scores": {
+            "beta2": {
+              "mean": 0.5,
+              "min": 0.5,
+              "max": 0.5
+            },
+            "timing_summary": {
+              "mean": 0.7200000000000001,
+              "min": 0.69,
+              "max": 0.7466666666666667
+            },
+            "hybrid": {
+              "mean": 0.7230555555555555,
+              "min": 0.63,
+              "max": 0.7958333333333333
+            },
+            "hybrid_log": {
+              "mean": 0.7766666666666667,
+              "min": 0.7733333333333333,
+              "max": 0.78
+            },
+            "relative": {
+              "mean": 0.7641666666666667,
+              "min": 0.7441666666666666,
+              "max": 0.8025
+            }
+          }
+        },
+        {
+          "label": "Slower, noisier cycles",
+          "beta2": 0.5,
+          "sona": 0.9013888888888889,
+          "sona_min": 0.8858333333333334,
+          "sona_max": 0.915,
+          "sessions": 3600,
+          "scores": {
+            "beta2": {
+              "mean": 0.5,
+              "min": 0.5,
+              "max": 0.5
+            },
+            "timing_summary": {
+              "mean": 0.8705555555555556,
+              "min": 0.8641666666666666,
+              "max": 0.8775
+            },
+            "hybrid": {
+              "mean": 0.91,
+              "min": 0.9,
+              "max": 0.9158333333333334
+            },
+            "hybrid_log": {
+              "mean": 0.9013888888888889,
+              "min": 0.8858333333333334,
+              "max": 0.915
+            },
+            "relative": {
+              "mean": 0.9125,
+              "min": 0.8908333333333334,
+              "max": 0.9283333333333333
+            }
+          }
+        },
+        {
+          "label": "New cycle lengths",
+          "beta2": 0.5,
+          "sona": 0.9875000000000002,
+          "sona_min": 0.9808333333333333,
+          "sona_max": 0.9916666666666667,
+          "sessions": 3600,
+          "scores": {
+            "beta2": {
+              "mean": 0.5,
+              "min": 0.5,
+              "max": 0.5
+            },
+            "timing_summary": {
+              "mean": 0.9091666666666667,
+              "min": 0.9041666666666667,
+              "max": 0.915
+            },
+            "hybrid": {
+              "mean": 0.9847222222222222,
+              "min": 0.9791666666666666,
+              "max": 0.9941666666666666
+            },
+            "hybrid_log": {
+              "mean": 0.9875000000000002,
+              "min": 0.9808333333333333,
+              "max": 0.9916666666666667
+            },
+            "relative": {
+              "mean": 0.9899999999999999,
+              "min": 0.9833333333333333,
+              "max": 0.9958333333333333
+            }
+          }
+        },
+        {
+          "label": "Small timing differences",
+          "beta2": 0.5,
+          "sona": 0.6733333333333333,
+          "sona_min": 0.6333333333333333,
+          "sona_max": 0.6966666666666667,
+          "sessions": 3600,
+          "scores": {
+            "beta2": {
+              "mean": 0.5,
+              "min": 0.5,
+              "max": 0.5
+            },
+            "timing_summary": {
+              "mean": 0.8300000000000001,
+              "min": 0.8191666666666667,
+              "max": 0.8383333333333334
+            },
+            "hybrid": {
+              "mean": 0.6475,
+              "min": 0.5958333333333333,
+              "max": 0.7008333333333333
+            },
+            "hybrid_log": {
+              "mean": 0.6733333333333333,
+              "min": 0.6333333333333333,
+              "max": 0.6966666666666667
+            },
+            "relative": {
+              "mean": 0.7027777777777778,
+              "min": 0.6266666666666667,
+              "max": 0.8
+            }
+          }
+        },
+        {
+          "label": "Much slower paired cycles",
+          "beta2": 0.5,
+          "sona": 0.9894444444444445,
+          "sona_min": 0.9875,
+          "sona_max": 0.9908333333333333,
+          "sessions": 3600,
+          "scores": {
+            "beta2": {
+              "mean": 0.5,
+              "min": 0.5,
+              "max": 0.5
+            },
+            "timing_summary": {
+              "mean": 0.7872222222222222,
+              "min": 0.7716666666666666,
+              "max": 0.7975
+            },
+            "hybrid": {
+              "mean": 0.9225,
+              "min": 0.8666666666666667,
+              "max": 0.9516666666666667
+            },
+            "hybrid_log": {
+              "mean": 0.9894444444444445,
+              "min": 0.9875,
+              "max": 0.9908333333333333
+            },
+            "relative": {
+              "mean": 0.9880555555555555,
+              "min": 0.9816666666666667,
+              "max": 0.9925
+            }
+          }
+        },
+        {
+          "label": "Harmless polling: 11\u201317 minute gaps",
+          "beta2": 1.0,
+          "sona": 0.9833333333333334,
+          "sona_min": 0.95,
+          "sona_max": 1.0,
+          "sessions": 900,
+          "scores": {
+            "beta2": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "timing_summary": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "hybrid": {
+              "mean": 0.8533333333333334,
+              "min": 0.5933333333333334,
+              "max": 1.0
+            },
+            "hybrid_log": {
+              "mean": 0.9833333333333334,
+              "min": 0.95,
+              "max": 1.0
+            },
+            "relative": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            }
+          }
+        },
+        {
+          "label": "Harmless polling: 25\u201350 minute gaps",
+          "beta2": 1.0,
+          "sona": 0.9266666666666667,
+          "sona_min": 0.78,
+          "sona_max": 1.0,
+          "sessions": 900,
+          "scores": {
+            "beta2": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "timing_summary": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "hybrid": {
+              "mean": 0.24333333333333332,
+              "min": 0.0,
+              "max": 0.73
+            },
+            "hybrid_log": {
+              "mean": 0.9266666666666667,
+              "min": 0.78,
+              "max": 1.0
+            },
+            "relative": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            }
+          }
+        }
+      ],
+      "benign_controls": [],
+      "limit": "The Sona \u00b7 relative preparation passed the predeclared showcase checks. Did not pass all checks: Sona \u00b7 seconds, Sona \u00b7 compressed. These candidates have not replaced the public model.",
+      "provenance": "Source: sona_pace_noise_v1. Counts include unique generated data once, not copies processed by nine candidates. Beta 2 uses the relative-input runs, matching the eligible relative-pace candidate; each variant\u2019s matching Beta 2 results are retained in the source CSV. Timing summaries is a simple classifier using predefined sequence statistics, trained only on the binary timing subset; it has no six-class scores. More noise was included in training, but the strongest noise and very slow harmless polling tests remain outside the training range. Saved predictions, matched splits and shuffled-sequence controls were audited. All candidates meet the ordinary and less-obvious traffic check, but those tests alone do not establish an advantage over Beta 2. All results use synthetic, completed sessions.",
+      "comparison": {
+        "mode": "relative",
+        "ordinary_sessions": 131,
+        "timing_sessions": 3600,
+        "models": {
+          "beta2": {
+            "ordinary": 1.0,
+            "timing": 0.5
+          },
+          "sona": {
+            "ordinary": 1.0,
+            "timing": 0.9900000000000001
+          }
+        }
+      }
+    },
+    {
+      "title": "Timing-pattern study",
+      "explanation": "Each benign/attack pair contains exactly the same flow measurements in a different order. Beta 2 guesses from individual flows; Sona can learn from the sequence. Shuffling Sona\u2019s test sequences drops its accuracy to 49.83%.",
+      "generated_flows": 4047000,
+      "seeds": [
+        503,
+        541,
+        577
+      ],
+      "rows": [
+        {
+          "label": "Same flows, different order",
+          "beta2": 0.5,
+          "sona": 0.9897222222222223,
+          "sona_min": 0.98,
+          "sona_max": 0.9966666666666667,
+          "sessions": 3600
+        },
+        {
+          "label": "Slower, noisier timing",
+          "beta2": 0.5,
+          "sona": 0.8552777777777778,
+          "sona_min": 0.8191666666666667,
+          "sona_max": 0.8841666666666667,
+          "sessions": 3600
+        },
+        {
+          "label": "New cycle lengths",
+          "beta2": 0.5,
+          "sona": 0.9472222222222223,
+          "sona_min": 0.9033333333333333,
+          "sona_max": 0.9933333333333333,
+          "sessions": 3600
+        },
+        {
+          "label": "Small timing differences",
+          "beta2": 0.5,
+          "sona": 0.6997222222222222,
+          "sona_min": 0.5858333333333333,
+          "sona_max": 0.7841666666666667,
+          "sessions": 3600
+        },
+        {
+          "label": "Heavier timing noise",
+          "beta2": 0.5,
+          "sona": 0.7419444444444444,
+          "sona_min": 0.6275,
+          "sona_max": 0.8966666666666666,
+          "sessions": 3600
+        }
+      ],
+      "benign_controls": [
+        {
+          "label": "Harmless polling within the covered pace range",
+          "sessions": 900,
+          "false_flags": 0
+        },
+        {
+          "label": "Harmless polling beyond the training pace range",
+          "sessions": 900,
+          "false_flags": 185
+        }
+      ],
+      "limit": "The timing advantage is repeatable, but one candidate falsely flagged 185 of 300 very slow harmless sessions. Noise and subtle patterns also remain weak. These candidates have not replaced the public model.",
+      "provenance": "Source: temporal_fix_summary_v2. The source covers seven candidates; this table shows the three expanded-pace runs. All scores are synthetic. A classifier using predefined timing summaries can also recognize order.",
+      "archived": true
+    }
+  ],
+  "four_model_comparison": {
+    "schema": 1,
+    "seeds": [
+      701,
+      733,
+      769
+    ],
+    "results": {
+      "v1": {
+        "normal": {
+          "version": "v1",
+          "test": "normal",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 131
+        },
+        "stealth": {
+          "version": "v1",
+          "test": "stealth",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 132
+        },
+        "timing": {
+          "version": "v1",
+          "test": "timing",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "slow_timing": {
+          "version": "v1",
+          "test": "slow_timing",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "known_long_cycles": {
+          "version": "v1",
+          "test": "known_long_cycles",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "unseen_long_cycles": {
+          "version": "v1",
+          "test": "unseen_long_cycles",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "subtle_timing": {
+          "version": "v1",
+          "test": "subtle_timing",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "extreme_pace": {
+          "version": "v1",
+          "test": "extreme_pace",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "polling": {
+          "version": "v1",
+          "test": "polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        },
+        "extra_noise": {
+          "version": "v1",
+          "test": "extra_noise",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "unseen_polling": {
+          "version": "v1",
+          "test": "unseen_polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        },
+        "extreme_noise": {
+          "version": "v1",
+          "test": "extreme_noise",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "extreme_polling": {
+          "version": "v1",
+          "test": "extreme_polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        }
+      },
+      "v2": {
+        "normal": {
+          "version": "v2",
+          "test": "normal",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 131
+        },
+        "stealth": {
+          "version": "v2",
+          "test": "stealth",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 132
+        },
+        "timing": {
+          "version": "v2",
+          "test": "timing",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "slow_timing": {
+          "version": "v2",
+          "test": "slow_timing",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "known_long_cycles": {
+          "version": "v2",
+          "test": "known_long_cycles",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "unseen_long_cycles": {
+          "version": "v2",
+          "test": "unseen_long_cycles",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "subtle_timing": {
+          "version": "v2",
+          "test": "subtle_timing",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "extreme_pace": {
+          "version": "v2",
+          "test": "extreme_pace",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "polling": {
+          "version": "v2",
+          "test": "polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        },
+        "extra_noise": {
+          "version": "v2",
+          "test": "extra_noise",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "unseen_polling": {
+          "version": "v2",
+          "test": "unseen_polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        },
+        "extreme_noise": {
+          "version": "v2",
+          "test": "extreme_noise",
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "sessions": 3600
+        },
+        "extreme_polling": {
+          "version": "v2",
+          "test": "extreme_polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        }
+      },
+      "v3": {
+        "normal": {
+          "version": "v3",
+          "test": "normal",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 131
+        },
+        "stealth": {
+          "version": "v3",
+          "test": "stealth",
+          "mean": 0.9166666666666666,
+          "min": 0.8863636363636364,
+          "max": 0.9545454545454546,
+          "sessions": 132
+        },
+        "timing": {
+          "version": "v3",
+          "test": "timing",
+          "mean": 0.9919444444444444,
+          "min": 0.9875,
+          "max": 0.9958333333333333,
+          "sessions": 3600
+        },
+        "slow_timing": {
+          "version": "v3",
+          "test": "slow_timing",
+          "mean": 0.9088888888888889,
+          "min": 0.9033333333333333,
+          "max": 0.9166666666666666,
+          "sessions": 3600
+        },
+        "known_long_cycles": {
+          "version": "v3",
+          "test": "known_long_cycles",
+          "mean": 0.9919444444444444,
+          "min": 0.9908333333333333,
+          "max": 0.9933333333333333,
+          "sessions": 3600
+        },
+        "unseen_long_cycles": {
+          "version": "v3",
+          "test": "unseen_long_cycles",
+          "mean": 0.9922222222222222,
+          "min": 0.9908333333333333,
+          "max": 0.9933333333333333,
+          "sessions": 3600
+        },
+        "subtle_timing": {
+          "version": "v3",
+          "test": "subtle_timing",
+          "mean": 0.6872222222222223,
+          "min": 0.6558333333333334,
+          "max": 0.7375,
+          "sessions": 3600
+        },
+        "extreme_pace": {
+          "version": "v3",
+          "test": "extreme_pace",
+          "mean": 0.9930555555555555,
+          "min": 0.9916666666666667,
+          "max": 0.9941666666666666,
+          "sessions": 3600
+        },
+        "polling": {
+          "version": "v3",
+          "test": "polling",
+          "mean": 0.9988888888888888,
+          "min": 0.9966666666666667,
+          "max": 1.0,
+          "sessions": 900
+        },
+        "extra_noise": {
+          "version": "v3",
+          "test": "extra_noise",
+          "mean": 0.9633333333333334,
+          "min": 0.955,
+          "max": 0.9725,
+          "sessions": 3600
+        },
+        "unseen_polling": {
+          "version": "v3",
+          "test": "unseen_polling",
+          "mean": 0.9988888888888888,
+          "min": 0.9966666666666667,
+          "max": 1.0,
+          "sessions": 900
+        },
+        "extreme_noise": {
+          "version": "v3",
+          "test": "extreme_noise",
+          "mean": 0.75,
+          "min": 0.74,
+          "max": 0.7583333333333333,
+          "sessions": 3600
+        },
+        "extreme_polling": {
+          "version": "v3",
+          "test": "extreme_polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        }
+      },
+      "v4": {
+        "normal": {
+          "version": "v4",
+          "test": "normal",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 131
+        },
+        "stealth": {
+          "version": "v4",
+          "test": "stealth",
+          "mean": 0.9924242424242425,
+          "min": 0.9772727272727273,
+          "max": 1.0,
+          "sessions": 132
+        },
+        "timing": {
+          "version": "v4",
+          "test": "timing",
+          "mean": 0.9900000000000001,
+          "min": 0.9858333333333333,
+          "max": 0.9925,
+          "sessions": 3600
+        },
+        "slow_timing": {
+          "version": "v4",
+          "test": "slow_timing",
+          "mean": 0.9125,
+          "min": 0.8908333333333334,
+          "max": 0.9283333333333333,
+          "sessions": 3600
+        },
+        "known_long_cycles": {
+          "version": "v4",
+          "test": "known_long_cycles",
+          "mean": 0.9894444444444445,
+          "min": 0.9858333333333333,
+          "max": 0.995,
+          "sessions": 3600
+        },
+        "unseen_long_cycles": {
+          "version": "v4",
+          "test": "unseen_long_cycles",
+          "mean": 0.9899999999999999,
+          "min": 0.9833333333333333,
+          "max": 0.9958333333333333,
+          "sessions": 3600
+        },
+        "subtle_timing": {
+          "version": "v4",
+          "test": "subtle_timing",
+          "mean": 0.7027777777777778,
+          "min": 0.6266666666666667,
+          "max": 0.8,
+          "sessions": 3600
+        },
+        "extreme_pace": {
+          "version": "v4",
+          "test": "extreme_pace",
+          "mean": 0.9880555555555555,
+          "min": 0.9816666666666667,
+          "max": 0.9925,
+          "sessions": 3600
+        },
+        "polling": {
+          "version": "v4",
+          "test": "polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        },
+        "extra_noise": {
+          "version": "v4",
+          "test": "extra_noise",
+          "mean": 0.966388888888889,
+          "min": 0.9641666666666666,
+          "max": 0.9675,
+          "sessions": 3600
+        },
+        "unseen_polling": {
+          "version": "v4",
+          "test": "unseen_polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        },
+        "extreme_noise": {
+          "version": "v4",
+          "test": "extreme_noise",
+          "mean": 0.7641666666666667,
+          "min": 0.7441666666666666,
+          "max": 0.8025,
+          "sessions": 3600
+        },
+        "extreme_polling": {
+          "version": "v4",
+          "test": "extreme_polling",
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "sessions": 900
+        }
+      }
+    },
+    "source": "four_model_timing_v1",
+    "scope": "All four candidates evaluated on identical saved test sessions. Timing training is shared; Beta 1/Beta 3 exclude slowed-down ordinary attack training. These are retrained counterparts, not original public beta checkpoints. Complete sessions only; speed was not measured."
+  }
+}

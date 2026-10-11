@@ -12,3 +12,18 @@ data/generated/
 artifacts/
 .kb/.cache/
 .kb/cache/
+
+# Local maintenance helpers
+.local-tools/
+
+# Local coordination and setup files
+.kb/
+.agents/
+.codex/
+.claude/
+/AGENTS.md
+/.gitkbignore
+/docs/HANDOFF.md
+/docs/PRODUCT_VISION.md
+/*.deb
+node_modules/

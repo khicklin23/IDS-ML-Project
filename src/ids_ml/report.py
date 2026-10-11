@@ -190,6 +190,7 @@ def build_session_report(
     alert_threshold: float = 0.5,
     sequence_config: SequenceTrainConfig | None = None,
     max_seq_len: int | None = None,
+    timing_mode: str = 'absolute',
 ) -> dict:
     """Latest-version detection report: the session GRU (tasks/model-versions'
     "v4" recipe -- session-level architecture + normal/stealth mixed
@@ -209,7 +210,7 @@ def build_session_report(
     both report that GRU's own train_config/history, truthfully.
     """
     out_dir = Path(out_dir)
-    sequence_config = sequence_config or SequenceTrainConfig(seed=seed)
+    sequence_config = sequence_config or SequenceTrainConfig(seed=seed, min_epochs=45)
     class_names = list(SCENARIO_CLASSES)
 
     normal_config = GenerationConfig(
@@ -252,7 +253,7 @@ def build_session_report(
     mixed_val = combine_runs(normal_val, stealth_val)
     test_df = combine_runs(normal_test, stealth_test)
 
-    preprocessor = build_preprocessor(mixed_train)
+    preprocessor = build_preprocessor(mixed_train, timing_mode=timing_mode)
 
     # Same real-data-driven sizing as tasks/model-versions' v4 fix (not a
     # fresh guess) -- see max_session_length's docstring.
@@ -307,6 +308,9 @@ def build_session_report(
         "schema_version": SCHEMA_VERSION,
         "architecture": "GRU (session-level)",
         "model_version": "v4",
+        "timing_mode": timing_mode,
+        "input_dim": train_seq[0].shape[-1],
+        "feature_names": preprocessor.get_feature_names_out().tolist(),
         "hidden_dim": sequence_config.hidden_dim,
         "max_seq_len": max_seq_len,
         "class_names": class_names,
@@ -362,6 +366,9 @@ def build_session_report(
             "model_version": "v4",
             "architecture": "GRU (session-level)",
             "training_recipe": "normal+stealth mixed",
+            "timing_mode": timing_mode,
+            "inference_context": "complete closed sessions",
+            "input_dim": train_seq[0].shape[-1],
             "hidden_dim": sequence_config.hidden_dim,
             "max_seq_len": max_seq_len,
             "note": (

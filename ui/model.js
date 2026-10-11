@@ -1,4 +1,4 @@
-import {validateReport, escapeHTML as esc, human, count} from './data.mjs?v=v4-20261011-3';
+import {validateReport, escapeHTML as esc, human, count} from './data.mjs?v=sona-model-trim-1';
 const $ = id => document.getElementById(id);
 let report, layer = 'input';
 const buttons = [...document.querySelectorAll('[data-layer]')];
@@ -10,7 +10,7 @@ function renderNetwork() {
     const names=['input','hidden1','hidden2','output'], xs=[105,355,615,865];
     const points=[6,8,8,outputs].map((n,i)=>Array.from({length:n},(_,j)=>[xs[i],72+j*160/Math.max(1,n-1)]));
     const active=names.indexOf(layer);
-    let svg=`<title>v4 neural network with ${dimension} memory values and ${outputs} family outputs</title><defs><marker id="memory-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#497ea6"/></marker></defs>`;
+    let svg=`<title>Sona neural network with ${dimension} memory values and ${outputs} family outputs</title><defs><marker id="memory-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#497ea6"/></marker></defs>`;
     points.slice(0,-1).forEach((nodes,i)=>nodes.forEach(([x,y])=>points[i+1].forEach(([nx,ny])=>{
       const selected=i===active||i+1===active;
       svg+=`<line x1="${x}" y1="${y}" x2="${nx}" y2="${ny}" stroke="${selected?'#a5bfd4':'#e4ebf1'}" stroke-width="${selected?'1.15':'.8'}"/>`;
@@ -26,7 +26,6 @@ function renderNetwork() {
     const content={input:['Read related flows in order','Each connection becomes numerical measurements. The model reads the connections in a session in time order. Labels and IP addresses stay out of the inputs.'],hidden1:['Update a small memory',`A GRU is a neural network that decides what to keep and update as each flow arrives. This saved model keeps ${dimension} memory values. Its connections are learned during training.`],hidden2:['Summarize the session','The final memory summarizes the sequence the model read. It is not a second fully-connected hidden layer. Similar individual flows can lead to different session summaries.'],output:['Choose a family, then decide whether to flag',`The same network has ${outputs} family outputs. Softmax converts their raw scores into values that add up to one. The highest score chooses the family. Any family other than benign flags the session; suspiciousness is 1 minus the benign probability.`]};
     const [title,text]=content[layer];$('layer-explanation').innerHTML=`<h3>${title}</h3><p>${text}</p>`;
     buttons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.layer===layer)));
-    $('architecture-details').textContent=`Ordered encoded flows → GRU (${dimension} memory values) → final memory → linear layer (${outputs} outputs). Saved maximum sequence length: ${report.detector.max_seq_len} flows. Family and detection views use the same model, not two networks.`;
     return;
   }
   const width = config.hidden_dim, second = Math.floor(width / 2);
@@ -62,16 +61,8 @@ function renderNetwork() {
   const [title, text] = explanations[layer];
   $('layer-explanation').innerHTML = `<h3>${title}</h3><p>${text}</p>`;
   buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.layer === layer)));
-  $('architecture-details').textContent = `Encoded feature vector → fully-connected layer (${width} neurons) → ReLU → Dropout (randomly ignores some neurons during training only, so the network can’t just memorize examples — here, ${Math.round(config.dropout * 100)}% of the time) → fully-connected layer (${second} neurons) → ReLU → fully-connected layer (${outputs} output${outputs === 1 ? '' : 's'}). Training works with the raw output numbers (called logits); turning those into a 0–1 score with ${family ? 'softmax' : 'sigmoid'} only happens when making an actual prediction. The input width depends on the saved preprocessing and is not included in this report.`;
-}
-function neuron() {
-  const weights = ['bytes','duration','outcome'].map(name => { const value = Number($(`weight-${name}`).value); $(`value-${name}`).textContent = value.toFixed(1); return value; });
-  const sum = .8 * weights[0] - .4 * weights[1] + weights[2] - .5;
-  $('neuron-result').innerHTML = `<span>Weighted sum + bias (−0.5)</span><strong>${sum.toFixed(2)}</strong><span>After ReLU</span><strong>${Math.max(0,sum).toFixed(2)}</strong>`;
 }
 buttons.forEach(button => button.addEventListener('click', () => { layer = button.dataset.layer; if (report) renderNetwork(); }));
-['bytes','duration','outcome'].forEach(name => $(`weight-${name}`).addEventListener('input', neuron));
-neuron();
 const descriptions = {
   benign: 'Ordinary browsing, DNS and other normal activity. These examples teach the models what should be left alone.',
   port_scan: 'Connections probing a range of ports, often with short or unsuccessful flows.',
@@ -86,7 +77,7 @@ try {
   if (!response.ok) throw new Error(`Report request failed (${response.status}).`);
   report = validateReport(await response.json());
   renderNetwork();
-  $('model-status').textContent = `Configuration and counts from saved run ${report.run_id}. Illustrations explain the architecture; they do not display recorded neuron activity.`;
+  $('model-status').hidden = true;
   $('training-source').textContent = `${count(report.dataset.manifest.row_count)} generated flows · ground truth`;
   const entries = Object.entries(report.dataset.manifest.scenario_counts).sort(([a],[b]) => a === 'benign' ? -1 : b === 'benign' ? 1 : a.localeCompare(b));
   $('training-examples').innerHTML = entries.map(([name,n]) => {
@@ -98,7 +89,6 @@ try {
     const bars = raw.map((h,i) => `<rect x="${i*18}" y="${44 - (h / max) * 40}" width="10" height="${(h / max) * 40}" rx="2" fill="currentColor"/>`).join('');
     return `<article class="scenario-example ${name === 'benign' ? 'normal-example' : ''}"><div><span class="example-kind">${name === 'benign' ? 'NORMAL TRAFFIC' : 'SIMULATED ATTACK'}</span><h3>${esc(human(name))}</h3><p>${esc(descriptions[name] || 'Generated examples for this behavior family.')}</p></div><svg viewBox="0 0 180 48" aria-hidden="true">${bars}</svg><strong>${count(n)} <small>flows</small></strong></article>`;
   }).join('');
-  $('saved-training-settings').innerHTML = ['binary_model','multiclass_model'].map(key => `<div class="detail-item"><span>${report.detector?.kind === 'session_sequence' ? 'Same session model · '+(key === 'binary_model'?'detection view':'family view') : key === 'binary_model' ? 'Binary detector' : 'Family classifier'}</span><strong>${Object.entries(report[key].train_config).map(([k,v]) => `${esc(human(k))}: ${esc(v)}`).join(' · ')}</strong></div>`).join('') + `<div class="detail-item"><span>Separate data splits</span><strong>${Object.entries(report.dataset.split_sizes).map(([k,v]) => `${esc(human(k))}: ${count(v)}`).join(' · ')}</strong></div>`;
   const threshold = report.binary_model.test_metrics.threshold;
   const thresholdPct = Number.isFinite(threshold) ? Math.max(0, Math.min(1, threshold)) * 100 : 0;
   $('threshold-marker').style.left = `${thresholdPct}%`;

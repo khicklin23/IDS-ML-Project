@@ -1,4 +1,4 @@
-import {colors, human, count, percent, escapeHTML as esc, elapsed, bytes, validateReport, selectEvidence, incidentGroups} from './data.mjs?v=v4-20261011-3';
+import {colors, human, count, percent, escapeHTML as esc, elapsed, bytes, validateReport, selectEvidence, incidentGroups, modelName} from './data.mjs?v=sona-ui-cleanup-1';
 
 const $ = id => document.getElementById(id);
 let report, sourceName = 'Bundled showcase report', tab = 'alerts', page = 0;
@@ -15,16 +15,19 @@ function status(message, error = false) {
 }
 function renderOverview() {
   const manifest = report.dataset.manifest, bin = report.binary_model.test_metrics, mc = report.multiclass_model;
-  const date = new Date(report.generated_at);
-  $('detector-note').textContent=isSession()?`${report.detector.model_version.toUpperCase()} · One model reads related connections in order. The predicted family decides whether to flag the session. Displayed flow counts inherit that session decision; they are not independent predictions.`:'Two separate flow-based networks supply the alert decision and family guess.';
-  $('run-meta').innerHTML = [report.run_id, `SEED ${manifest.config.seed}`, `REPORT ${report.report_version} · SCHEMA ${report.schema_version}`, `${manifest.config.duration_minutes} MIN SIMULATION`, Number.isNaN(date.getTime()) ? 'DATE UNAVAILABLE' : `${date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · ${date.toISOString().slice(11,16)} UTC`].map(value=>`<span>${esc(value)}</span>`).join('');
   const metrics = [
     ['Synthetic flows', count(manifest.row_count), `${count(manifest.host_count)} generated hosts`, 'GROUND TRUTH','truth'],
     ['Detection F1', percent(bin.f1), `${count(bin.n)} held-out flows · ${isSession()?'session family decision':`threshold ${bin.threshold ?? 'unavailable'}`}`, 'MODEL INFERENCE','inference'],
     ['Classification macro F1', percent(mc.test_metrics.macro_f1), `${mc.class_names.filter(name=>name!=='benign').length} attack families + normal · equally weighted`, 'MODEL INFERENCE','inference'],
     ['Model-generated alerts', count(report.alerts.total), Object.entries(report.alerts.by_severity).map(([key,value])=>`${count(value)} ${key}`).join(' · ') || 'No alerts in this run', 'MODEL INFERENCE','inference'],
   ];
-  $('metrics').innerHTML = metrics.map(([title,value,description,label,type])=>`<article class="metric"><div class="metric-label"><span>${title}</span>${badge(label,type)}</div><div class="metric-value">${value}</div><div class="metric-desc">${esc(description)}</div></article>`).join('');
+  const metricHelp = {
+    'Synthetic flows':'Computer-generated connection records, not captured real-world traffic. This count covers the full dataset, including training and test data.',
+    'Detection F1':'A score that balances how many flagged examples were truly suspicious with how many suspicious examples were caught. Higher is better. Related flows share a session decision.',
+    'Classification macro F1':'A balanced score for choosing the correct traffic family. Each family, including normal traffic, gets equal weight so a common class cannot hide a weak result.',
+    'Model-generated alerts':'Alert records created when the model chose an attack family for a session. An alert is not proof of an attack; it can be a false alarm. This is not the number of flagged flows.'
+  };
+  $('metrics').innerHTML = metrics.map(([title,value,description,label,type])=>`<article class="metric"><div class="metric-label"><span>${title}</span><button type="button" class="metric-info" aria-label="About ${title}" aria-describedby="help-${type}-${metrics.findIndex(m=>m[0]===title)}">i<span class="metric-tooltip" role="tooltip" id="help-${type}-${metrics.findIndex(m=>m[0]===title)}">${esc(metricHelp[title])}</span></button>${badge(label,type)}</div><div class="metric-value">${value}</div><div class="metric-desc">${esc(description)}</div></article>`).join('');
   const cm=bin.confusion_matrix;
   $('disposition-summary').innerHTML=`<article class="disposition benign-disposition"><h3>Normal traffic</h3><div class="disposition-count">${count(cm.tn)} <span>benign flows correctly left unflagged</span></div><p>The detector classified these as normal. No alert was triggered for these flows.</p><div class="disposition-exception">${count(cm.fp)} benign flows were flagged instead · false positives</div></article><article class="disposition attack-disposition"><h3>Attack traffic</h3><div class="disposition-count">${count(cm.tp)} <span>suspicious flows correctly flagged</span></div><p>The detector classified these generated attack flows as suspicious.</p><div class="disposition-exception">${count(cm.fn)} suspicious flows were left unflagged · missed detections</div></article>`;
   $('disposition-note').textContent=`${isSession()?'Session decisions counted across flows':'Binary model outcomes'} across ${count(bin.n)} held-out flows, checked against generated ground truth. ${isSession()?'Related flows share one session prediction. These counts are not separate model decisions.':'These are flow counts, not session-level alert counts.'} Individual unflagged predictions are not included in the report sample.`;
@@ -33,9 +36,9 @@ function renderOverview() {
 }
 function renderPerformance() {
   const bin = report.binary_model.test_metrics, rule = report.binary_model.rule_baseline_metrics;
-  $('comparison').innerHTML = [['f1','F1 score'],['recall','Recall · suspicious flows caught'],['precision','Precision · flagged flows actually suspicious'],['false_positive_rate','False-positive rate · lower is better']].map(([key,label])=>`<div class="compare-row"><div class="compare-label">${label}</div><div class="bar-line" aria-label="Neural ${label}: ${percent(bin[key])}">${bar(bin[key],colors[2])}<span class="bar-number">${percent(bin[key])}</span></div><div class="bar-line" aria-label="Rule ${label}: ${percent(rule[key])}">${bar(rule[key],colors[0])}<span class="bar-number muted">${percent(rule[key])}</span></div></div>`).join('');
+  $('comparison').innerHTML = [['f1','F1 · balances correct flags and missed attacks'],['recall','Recall · suspicious flows caught'],['precision','Precision · flagged flows actually suspicious'],['false_positive_rate','False-positive rate · lower is better']].map(([key,label])=>`<div class="compare-row"><div class="compare-label">${label}</div><div class="bar-line" aria-label="Neural ${label}: ${percent(bin[key])}"><span class="compare-model-name">Sona</span>${bar(bin[key],colors[2])}<span class="bar-number">${percent(bin[key])}</span></div><div class="bar-line" aria-label="Rule ${label}: ${percent(rule[key])}"><span class="compare-model-name">Fixed rule</span>${bar(rule[key],colors[0])}<span class="bar-number muted">${percent(rule[key])}</span></div></div>`).join('');
   const delta = (bin.recall-rule.recall)*100;
-  $('comparison-note').textContent = `Neural recall is ${Math.abs(delta).toFixed(1)} percentage points ${delta>=0?'higher':'lower'}. Tradeoff: ${count(bin.confusion_matrix.fp)} neural false positives vs. ${count(rule.confusion_matrix.fp)} rule false positives. This is one synthetic experiment, not an equal-false-alarm-rate comparison.${bin.n!==rule.n?' Warning: test-set counts differ.':''}`;
+  $('comparison-note').textContent = `These are two different detectors on the same test flows. Higher F1 means a better balance of correct flags and missed attacks; it is not accuracy. The fixed rule’s low score comes largely from the attack flows it misses. Neural recall is ${Math.abs(delta).toFixed(1)} percentage points ${delta>=0?'higher':'lower'}. Tradeoff: ${count(bin.confusion_matrix.fp)} neural false positives vs. ${count(rule.confusion_matrix.fp)} rule false positives. This is one synthetic experiment, not an equal-false-alarm-rate comparison.${bin.n!==rule.n?' Warning: test-set counts differ.':''}`;
   const mc = report.multiclass_model, perClass = mc.test_metrics.per_class;
   const classRow=(name)=>{
     const i=mc.class_names.indexOf(name);
@@ -54,7 +57,7 @@ function renderPerformance() {
   const manifest=report.dataset.manifest, splits=report.dataset.split_sizes;
   const compositionRow=([name,n])=>`<div class="composition-row"><span>${esc(human(name))}</span>${bar(manifest.row_count ? n/manifest.row_count : 0,colors[Math.max(0,names.indexOf(name))%colors.length])}<span>${count(n)}</span></div>`;
   $('composition').innerHTML=(manifest.scenario_counts.benign!=null?`<div class="normal-composition"><h4>Normal background</h4>${compositionRow(['benign',manifest.scenario_counts.benign])}</div>`:'')+'<h4>Generated attack scenarios</h4>'+Object.entries(manifest.scenario_counts).filter(([name])=>name!=='benign').map(compositionRow).join('');
-  $('dataset-details').innerHTML = item('Training flows',count(splits.train))+item('Validation flows',count(splits.val))+item('Test flows',count(splits.test))+item('Background realism opt-in',manifest.config.realistic_background?'Enabled':'Disabled');
+  $('dataset-details').innerHTML = item('Total flows',count(manifest.row_count))+item('Training flows',count(splits.train))+item('Validation flows',count(splits.val))+item('Test flows',count(splits.test))+item('Background realism opt-in',manifest.config.realistic_background?'Enabled':'Disabled');
 }
 function renderEvidence() {
   const isFlow=tab==='flows',mode=isFlow?'flows':'alerts';
@@ -87,7 +90,7 @@ function renderEvidence() {
   $('page-number').textContent=`${page+1} / ${pages}`;
   $('previous').disabled=page===0;
   $('next').disabled=page>=pages-1;
-  $('evidence-note').textContent=isAlert?(isSession()?'One v4 session prediction supplies both the family and alert decision. Suspiciousness score is 1 minus the model’s normal-traffic probability. All related flows inherit that decision. Severity reflects score, not verified impact. Filters affect only the embedded alert sample.':'Alerts come from the binary model; predicted family comes from the separate multiclass model. These can disagree. Severity reflects binary confidence, not verified impact. Ground truth is generator provenance. Filters affect only the embedded alert sample.'):'These are the earliest flows embedded in the report, not a representative sample or the full dataset. Family and normal/suspicious labels are ground truth; this sample has no per-flow model predictions or ports. Filters affect only these records.';
+  $('evidence-note').textContent=isAlert?(isSession()?'One Sona session prediction supplies both the family and alert decision. Suspiciousness score is 1 minus the model’s normal-traffic probability. All related flows inherit that decision. Severity reflects score, not verified impact. Filters affect only the embedded alert sample.':'Alerts come from the binary model; predicted family comes from the separate multiclass model. These can disagree. Severity reflects binary confidence, not verified impact. Ground truth is generator provenance. Filters affect only the embedded alert sample.'):'These are the earliest flows embedded in the report, not a representative sample or the full dataset. Family and normal/suspicious labels are ground truth; this sample has no per-flow model predictions or ports. Filters affect only these records.';
   $('table-body').querySelectorAll('[data-row]').forEach(button=>button.addEventListener('click',()=>openDetail(rows[Number(button.dataset.row)],isAlert)));
 }
 function renderIncidents() {
@@ -134,10 +137,9 @@ function renderAll() {
   resetFilters();
   $('family-filter').innerHTML='<option value="">All families</option>'+(report.multiclass_model.class_names.includes('benign')?'<optgroup label="Normal traffic"><option value="benign">Benign</option></optgroup>':'')+'<optgroup label="Attack families">'+report.multiclass_model.class_names.filter(name=>name!=='benign').map(name=>`<option value="${esc(name)}">${esc(human(name))}</option>`).join('')+'</optgroup>';
   renderOverview();renderPerformance();renderEvidence();
-  $('source-label').textContent=sourceName;
   $('dataset-link').textContent=sourceName==='Bundled showcase report'?'Browse full dataset':'Browse bundled dataset';
   $('raw-link').textContent=sourceName==='Bundled showcase report'?'Open raw data':'Bundled raw data';
-  $('dashboard').hidden=false;$('download-report').disabled=false;status('');
+  $('dashboard').hidden=false;status('');
 }
 function loadReport(value,name) {
   const checked=validateReport(value);
@@ -158,26 +160,8 @@ $('reset-filters').addEventListener('click',()=>{resetFilters();renderEvidence()
 $('previous').addEventListener('click',()=>{page--;renderEvidence();});
 $('next').addEventListener('click',()=>{page++;renderEvidence();});
 $('close-detail').addEventListener('click',closeDetail);
-let loadSequence=0;
-$('report-upload').addEventListener('change',async event=>{
-  const file=event.target.files[0]; if(!file)return;
-  const sequence=++loadSequence;
-  try{
-    if(file.size>20*1024*1024)throw new Error('Choose a report smaller than 20 MiB.');
-    status(`Reading ${file.name}…`);
-    const parsed=JSON.parse(await file.text());
-    if(sequence===loadSequence)loadReport(parsed,`Imported · ${file.name}`);
-  }catch(error){if(sequence===loadSequence)status(`${error.message}${report?' The previous report remains displayed.':' Choose a valid report.json to continue.'}`,true);}
-  event.target.value='';
-});
-$('download-report').addEventListener('click',()=>{
-  const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
-  link.href=url;link.download=`${String(report.run_id).replace(/[^a-z0-9_-]/gi,'_')}-report.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-});
-const initialSequence=loadSequence;
 try {
   const response=await fetch('./report.json',{cache:'no-cache'});
-  if(!response.ok)throw new Error(`Bundled report could not be loaded (HTTP ${response.status}).`);
-  const data=await response.json();
-  if(initialSequence===loadSequence)loadReport(data,'Bundled showcase report');
-}catch(error){if(initialSequence===loadSequence)status(`${error.message} Serve this folder over HTTP, or load a report using the button above.`,true);}
+  if(!response.ok)throw new Error(`Results could not be loaded (HTTP ${response.status}).`);
+  loadReport(await response.json(),'Bundled showcase report');
+}catch(error){status(`${error.message} Please refresh the page or check that the release contains its data.`,true);}

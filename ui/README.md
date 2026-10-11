@@ -20,7 +20,7 @@ Navigation opens four separate pages: Overview, Raw data, Model explained, and M
 - Alert details separate suspiciousness scores, family guesses and generated ground truth. A benign ground-truth alert is identified as a false-positive example. A session link opens its full raw flows.
 - Raw data opens raw.html: all 87,505 bundled flow records, 100 per page by default. Search covers every original field; family/outcome filters, sortable columns, page jump, and packet/provenance column controls are available. Each record includes the original ports and counters. No download is needed.
 - Model evaluation is retained. Training histories and the decorative neural hero are removed.
-- JSON import/export remains browser-local. Imported reports do not supply full raw datasets: links explicitly refer to the bundled dataset, and imported alerts do not get raw-session links. The raw page identifies its run and refuses mismatched report/raw exports.
+- Public Overview has no report import/export controls or run metadata strip. The raw page verifies that its dataset matches the bundled report.
 
 The raw dataset has ground-truth labels, not per-flow model predictions. Embedded report flows are only a hundred-row sample; report alerts may also be sampled. Incident counts cover only embedded alerts. Static state is read-only.
 
@@ -45,7 +45,7 @@ The exporter requires the project's existing pandas/Parquet environment. It chec
 
 ## Vercel
 
-Use Root Directory ui, framework Other, no build command, and output directory dot (`.`). Ship report.json and the entire raw-data directory with the HTML/CSS/JS. No server functions or environment variables are required. No deployment was performed.
+Use Root Directory ui, framework Other, no build command, and output directory dot (`.`). Ship report.json, versions.json, research.json, and the entire raw-data directory with the HTML/CSS/JS. No server functions or environment variables are required. No deployment was performed.
 
 ## Validation
 
@@ -57,4 +57,18 @@ Model progression (`progression.html`) defaults to v4 and lets readers inspect v
 
 To refresh this comparison only, copy the backend comparison to `ui/versions.json` from the project root, then run the UI checks. Keep the full JSON shape; the page checks the schema, test counts, and class matrix totals. The scores are balanced class scores, not attack detection rates.
 
+Model Progression also loads `research.json`: verified timing experiments, clearly separated from the public model. It shows candidate accuracy, repeat-run ranges, and false flags on harmless traffic. These numbers do not replace Overview, historical version scores, or raw-data records. The standalone builder validates and embeds this summary too.
+
 Static CSS/JS and browser module imports carry a release query (`?v=v4-20261011-3`) so an older validator is not reused after this update. Vercel revalidates static files. Bump that release query across HTML and JS imports when shipping code changes. If an old error remains, use Ctrl+Shift+R once and verify you are serving this workspace’s ui directory.
+
+## Standalone public release
+
+From the project root, run `npm --prefix ui run build` (or `npm run build` inside ui). The first build writes `Release_1.0.html` in the project root. Each later build finds the highest existing release number and increments it: `Release_1.1.html`, `Release_1.2.html`, and so on. A successful build writes `CURRENT_RELEASE.txt` with the new filename, then deletes older `Release_1.x.html` files. Only the newest release is retained.
+
+Each file embeds all four pages, styles, scripts, current report/comparison, experimental summary, and every raw flow chunk. It can open directly as a local HTML file or be hosted as a single static file. Page navigation uses the URL fragment; session links remain inside the release. No runtime server, dependency files, or network requests are required. JavaScript must be enabled. The full raw dataset makes the release larger than a typical webpage.
+
+Refresh report and raw exports before building. The builder refuses mismatched data and syntax-checks packaged scripts. UI checks exercise all packaged views with embedded fetch responses; actual browser layout and file-opening behavior still need browser review. The editable multi-file ui directory remains the source for future releases.
+
+After a completed matched study, refresh only the experimental comparison with `.venv/bin/python ui/scripts/sync-research.py data/generated/sona_pace_noise_v1`. This reads the audited all-seed summary, preserves the earlier study, and leaves Overview/report data unchanged. Then run the UI checks and build.
+
+To publish the audited four-model comparison, add `--four-model-summary data/generated/four_model_timing_v1/summary.json` to the research sync command. The top module shows all four retrained counterparts on the same ordinary, slowed-down and timing test sessions; its summary averages the three categories equally. Original public weights and scores remain separate.

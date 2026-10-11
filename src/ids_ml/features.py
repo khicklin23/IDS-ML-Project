@@ -35,11 +35,71 @@ SCENARIO_TO_INT = {name: i for i, name in enumerate(SCENARIO_CLASSES)}
 INT_TO_SCENARIO = {v: k for k, v in SCENARIO_TO_INT.items()}
 
 
-def build_preprocessor(train_df: pd.DataFrame) -> ColumnTransformer:
-    """Fit a ColumnTransformer on training data only."""
+def relative_timing_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize gaps within complete, closed sessions; never reads labels.
+
+    This is batch/session inference, not an online transform for partial flows.
+    Keep absolute event times in the original telemetry for display and replay.
+    """
+    if 'session_id' not in df:
+        raise ValueError('Relative timing requires complete sessions and session_id.')
+    if df.session_id.isna().any():
+        raise ValueError('Relative timing requires a session_id for every flow.')
+    out = df.copy()
+    gaps = out.prior_gap_s.to_numpy(dtype=np.float64, copy=True)
+    if not np.isfinite(gaps).all() or (gaps < 0).any():
+        raise ValueError('Timing gaps must be finite and nonnegative.')
+    for indices in out.groupby('session_id', sort=False).indices.values():
+        positive = np.sort(gaps[indices][gaps[indices] > 0])
+        scale = float(np.mean(positive)) if len(positive) else 1.
+        gaps[indices] /= max(scale, 1e-6)
+    out['prior_gap_s'] = gaps
+    return out
+
+
+class SessionTimingPreprocessor:
+    """Persist the closed-session transform with its train-fitted encoder.
+
+    hybrid_log compresses only the absolute gap with log1p; the relative gap
+    is calculated from the original seconds, before that compression.
+    """
+
+    timing_mode = 'relative'  # Backward-compatible with early relative-only pickles.
+
+    def __init__(self, encoder, timing_mode='relative'):
+        self.encoder = encoder
+        self.timing_mode = timing_mode
+
+    def transform(self, df):
+        prepared = relative_timing_frame(df)
+        columns = list(FEATURE_COLUMNS)
+        if self.timing_mode in ('hybrid', 'hybrid_log'):
+            prepared = df.assign(session_relative_gap=prepared.prior_gap_s)
+            columns.append('session_relative_gap')
+            if self.timing_mode == 'hybrid_log':
+                prepared = prepared.assign(prior_gap_s=np.log1p(prepared.prior_gap_s))
+        return self.encoder.transform(prepared[columns])
+
+    def get_feature_names_out(self):
+        return self.encoder.get_feature_names_out()
+
+
+def build_preprocessor(train_df: pd.DataFrame, *, timing_mode: str = 'absolute') -> ColumnTransformer | SessionTimingPreprocessor:
+    """Fit on training data only. Relative mode requires complete closed sessions."""
+    if timing_mode not in ('absolute', 'relative', 'hybrid', 'hybrid_log'):
+        raise ValueError('timing_mode must be absolute, relative, hybrid, or hybrid_log.')
+    fit_df = relative_timing_frame(train_df) if timing_mode != 'absolute' else train_df
+    numeric = list(NUMERIC_FEATURES)
+    columns = list(FEATURE_COLUMNS)
+    if timing_mode in ('hybrid', 'hybrid_log'):
+        fit_df = train_df.assign(session_relative_gap=fit_df.prior_gap_s)
+        if timing_mode == 'hybrid_log':
+            fit_df = fit_df.assign(prior_gap_s=np.log1p(fit_df.prior_gap_s))
+        numeric.append('session_relative_gap')
+        columns.append('session_relative_gap')
     preprocessor = ColumnTransformer(
         transformers=[
-            ("numeric", StandardScaler(), list(NUMERIC_FEATURES)),
+            ("numeric", StandardScaler(), numeric),
             (
                 "categorical",
                 OneHotEncoder(handle_unknown="ignore", sparse_output=False),
@@ -47,12 +107,13 @@ def build_preprocessor(train_df: pd.DataFrame) -> ColumnTransformer:
             ),
         ]
     )
-    preprocessor.fit(train_df[list(FEATURE_COLUMNS)])
-    return preprocessor
+    preprocessor.fit(fit_df[columns])
+    return SessionTimingPreprocessor(preprocessor, timing_mode) if timing_mode != 'absolute' else preprocessor
 
 
-def transform_features(preprocessor: ColumnTransformer, df: pd.DataFrame) -> np.ndarray:
-    return preprocessor.transform(df[list(FEATURE_COLUMNS)]).astype(np.float32)
+def transform_features(preprocessor: ColumnTransformer | SessionTimingPreprocessor, df: pd.DataFrame) -> np.ndarray:
+    frame = df if isinstance(preprocessor, SessionTimingPreprocessor) else df[list(FEATURE_COLUMNS)]
+    return preprocessor.transform(frame).astype(np.float32)
 
 
 def extract_labels(df: pd.DataFrame) -> np.ndarray:
@@ -78,9 +139,9 @@ def extract_scenario_labels(df: pd.DataFrame) -> np.ndarray:
     return extract_labels_for_classes(df, list(SCENARIO_CLASSES))
 
 
-def save_preprocessor(preprocessor: ColumnTransformer, path: Path | str) -> None:
+def save_preprocessor(preprocessor: ColumnTransformer | SessionTimingPreprocessor, path: Path | str) -> None:
     Path(path).write_bytes(pickle.dumps(preprocessor))
 
 
-def load_preprocessor(path: Path | str) -> ColumnTransformer:
+def load_preprocessor(path: Path | str) -> ColumnTransformer | SessionTimingPreprocessor:
     return pickle.loads(Path(path).read_bytes())

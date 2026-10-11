@@ -238,8 +238,10 @@ def save_artifact(
         "input_dim": input_dim,
         "output_dim": output_dim,
         "class_names": class_names,
-        "numeric_features": list(NUMERIC_FEATURES),
+        "numeric_features": list(getattr(preprocessor, 'encoder', preprocessor).transformers_[0][2]),
         "categorical_features": list(CATEGORICAL_FEATURES),
+        "timing_mode": getattr(preprocessor, 'timing_mode', 'absolute'),
+        "feature_names": preprocessor.get_feature_names_out().tolist(),
         "train_config": dataclasses.asdict(train_config),
         "metrics": metrics,
     }

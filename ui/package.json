@@ -1,0 +1,12 @@
+{
+  "name": "ids-neural-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 4173 --bind 127.0.0.1",
+    "check": "node --check app.js && node --check raw.js && node --check model.js && node --check versions.js && node --test checks/*.test.mjs",
+    "sync-report": "node scripts/sync-report.mjs",
+    "sync-raw": "../.venv/bin/python scripts/build-raw.py"
+  }
+}

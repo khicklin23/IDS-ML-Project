@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">IDS Monitor — learning network behavior</title>
+  <desc id="description">An educational intrusion detection project. A schematic connects network flow features to two neural models: suspiciousness detection and six-class classification.</desc>
+  <rect x="1" y="1" width="1198" height="318" rx="8" fill="#F7F9FC" stroke="#D8E1EB"/>
+  <path d="M0 56H1200M0 264H1200" stroke="#E5EBF2"/>
+  <rect x="38" y="24" width="8" height="8" fill="#286397"/>
+  <text x="58" y="33" font-family="Arial, Helvetica, sans-serif" font-size="11" letter-spacing="2" fill="#52677C">NETWORK SECURITY / MACHINE LEARNING</text>
+  <text x="38" y="122" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="700" letter-spacing="-1.5" fill="#23354A">IDS Monitor</text>
+  <text x="40" y="158" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#52677C">Learn the behavior. Review the evidence.</text>
+  <text x="40" y="203" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#61758A">Synthetic telemetry. Two neural models.</text>
+  <text x="40" y="225" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#61758A">An analyst workspace built around honest evaluation.</text>
+  <path d="M556 88V233" stroke="#D8E1EB"/>
+  <g stroke="#B2C4D6" stroke-width="1.2">
+    <path d="M626 125L699 107M626 125L699 150M626 125L699 193M626 172L699 107M626 172L699 150M626 172L699 193M626 215L699 107M626 215L699 150M626 215L699 193"/>
+    <path d="M709 107L781 130M709 107L781 174M709 150L781 130M709 150L781 174M709 193L781 130M709 193L781 174"/>
+    <path d="M791 130L844 130L879 117M791 174L844 174L879 201"/>
+  </g>
+  <g fill="#F7F9FC" stroke="#48789F" stroke-width="2">
+    <circle cx="623" cy="125" r="6"/><circle cx="623" cy="172" r="6"/><circle cx="623" cy="215" r="6"/>
+    <circle cx="704" cy="107" r="6"/><circle cx="704" cy="150" r="6"/><circle cx="704" cy="193" r="6"/>
+    <circle cx="786" cy="130" r="6"/><circle cx="786" cy="174" r="6"/>
+  </g>
+  <rect x="880" y="89" width="272" height="59" rx="4" fill="white" stroke="#D2DEEA"/>
+  <rect x="880" y="172" width="272" height="59" rx="4" fill="white" stroke="#D2DEEA"/>
+  <text x="899" y="112" font-family="Arial, Helvetica, sans-serif" font-size="10" letter-spacing="1.4" fill="#286397">BINARY DETECTOR</text>
+  <text x="899" y="133" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#23354A">Normal or suspicious?</text>
+  <text x="899" y="195" font-family="Arial, Helvetica, sans-serif" font-size="10" letter-spacing="1.4" fill="#286397">MULTICLASS CLASSIFIER</text>
+  <text x="899" y="216" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#23354A">Benign + five attack families</text>
+  <text x="598" y="246" font-family="Arial, Helvetica, sans-serif" font-size="9" letter-spacing="1" fill="#61758A">ILLUSTRATIVE NETWORK — TWO SEPARATELY TRAINED MODELS</text>
+  <text x="40" y="297" font-family="Arial, Helvetica, sans-serif" font-size="11" letter-spacing="1.4" fill="#52677C">PYTHON / PYTORCH / SCIKIT-LEARN</text>
+  <text x="1160" y="297" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" letter-spacing="1.4" fill="#52677C">STATIC ANALYST DASHBOARD</text>
+</svg>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f6f8"><title>Raw data · IDS Monitor</title><link rel="stylesheet" href="styles.css"><script type="module" src="raw.js"></script></head>
+<body>
+<a class="skip" href="#main">Skip to data</a>
+<header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">▥</span><strong>IDS Monitor</strong><span class="workspace-label">Research workspace</span></a><nav aria-label="Main navigation"><a href="index.html">Overview</a><a href="raw.html" aria-current="page">Raw data</a><a href="model.html">Model explained</a></nav></header>
+<main id="main">
+  <section class="intro"><div><p class="breadcrumb">Workspace / Dataset</p><h1>Raw network flows</h1><p class="intro-copy">Browse the complete bundled dataset. Filters search every record, not just the visible page.</p><div id="raw-meta" class="run-meta"></div></div><a class="button" href="index.html">Back to overview</a></section>
+  <div id="raw-status" class="status" role="status">Loading dataset…</div>
+  <article class="panel evidence-panel raw-table" id="raw-browser" hidden>
+    <div class="filters"><label class="search-field"><span>Search all fields</span><input id="raw-search" type="search" placeholder="IP, session, flow ID, port…"></label><label><span>Ground-truth family</span><select id="raw-family"><option value="">All families</option></select></label><label><span>Connection outcome</span><select id="raw-outcome"><option value="">All outcomes</option></select></label><label><span>Rows per page</span><select id="raw-page-size"><option>25</option><option>50</option><option selected>100</option><option>250</option></select></label><button id="raw-reset">Reset filters</button></div>
+    <div class="raw-columns"><label><input id="show-packets" type="checkbox">Packet counters</label><label><input id="show-provenance" type="checkbox">Session & provenance columns</label><span class="muted">Select a column heading to sort. Times are simulation seconds.</span></div>
+    <div class="table-wrap"><table class="evidence-table"><caption class="sr-only">Raw synthetic flow records, filtered and paginated</caption><thead id="raw-head"></thead><tbody id="raw-body"></tbody></table></div>
+    <div class="table-footer"><span id="raw-summary" aria-live="polite"></span><div><button id="raw-prev">Previous</button><label>Page <input id="raw-page" type="number" min="1" value="1" style="width:65px" aria-label="Go to page"></label><span id="raw-pages"></span><button id="raw-next">Next</button></div></div>
+  </article>
+  <p class="footnote">Scenario and label columns are synthetic ground truth. This raw dataset does not include per-flow model predictions. All original columns are available through the column controls; no dataset download is required.</p>
+  <footer><span>IDS Monitor · Static dataset review</span><span id="raw-version"></span></footer>
+</main>
+</body></html>

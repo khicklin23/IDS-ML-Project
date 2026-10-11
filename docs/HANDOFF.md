@@ -120,3 +120,15 @@ Built, in order:
 2026-10-11 · agent-1-static-ui: Completed tasks/model-explanation-ui: navigation now has three real pages; new Model explained page includes report-derived architecture and counts, layer exploration, training explanations, and illustrative weight controls. UI checks pass (5 files); backend/data unchanged. Browser visual review remains.
 
 2026-10-11 · agent-1-version-ui: Overview now supports v1/v2/v3 comparison, default v3, using a static copy of model_versions/comparison.json. Simple explanations and shared session statistics distinguish v2 training changes from v3 sequence memory. Older alerts/raw/report remain separately labeled; no version-specific alert data invented. Six UI check files pass; backend unchanged. See tasks/version-overview-ui and ui/README.md.
+
+2026-10-11 · agent-1-version-ui: Revised Overview version layout following spacing/design feedback: single compact panel, version tabs, side-by-side explanation/results, collapsed methodology and mobile stacking. Existing selection/data preserved; six UI check files pass. Browser visual review remains.
+
+2026-10-11 · agent-1-ui-v4: Completed tasks/progression-page-v4. New Model progression page compares v1–v4 (default v4); four-page navigation updated. Overview reordered: detection performance, detection records, classification/dataset, alerts/incidents last. Corrected v4 narrative to acknowledge v2 tie. Six UI check files and HTML links/IDs pass; backend/data untouched, browser visual QA outstanding.
+
+2026-10-11 · agent-1-refresh: Fixed stale Overview/raw copies: now latest complete showcase_50k run-7, 49,014 flows, report1.1/schema1.2. Default sync source updated, six UI checks pass. v4 comparison remains separate: backend does not export v4 alerts/raw/binary report; future latest-version Overview integration needs that contract, not a UI relabel. See tasks/dashboard-data-refresh.
+
+2026-10-11 · agent-1-refresh: v4 UI integration completed: showcase_v4 session-7 report, 87,505 raw flows, 88 chunks, real alerts. Overview/model explanation updated for one shared session GRU (family-based flags, 1-P(benign) score, inherited flow decisions), namespaced raw session links supported. Corrected model comparison synced. Six UI check files pass; backend unchanged. tasks/dashboard-data-refresh records details; no remaining export blocker.
+
+2026-10-11 · agent-1-refresh: Fixed likely cached pre-1.1 validator by versioning HTML assets and all browser module imports (v4-20261011-2), plus static revalidation headers. Six UI checks pass. User can hard refresh once; hosted sites must serve this updated ui build.
+
+2026-10-11 · agent-1-ui: Removed requested extra sections on progression/explanation pages and redundant model selector. Restored neural node/connection visualization with v4 recurrence loop and selectable stages. Six UI checks pass; release query bumped to v4-20261011-3.

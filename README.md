@@ -10,7 +10,7 @@
   <a href="#explore-the-dashboard">Explore</a> ·
   <a href="#how-it-learns">How it learns</a> ·
   <a href="#what-the-models-decide">Model decisions</a> ·
-  <a href="#model-versions-v1-v2-v3">Model versions</a> ·
+  <a href="#model-versions-v1-v2-v3-v4">Model versions</a> ·
   <a href="#project-map">Project map</a>
 </p>
 
@@ -76,23 +76,30 @@ Evaluation separates whole sessions across training, validation, and testing, wi
 
 > **Research boundary:** synthetic performance does not establish production IDS accuracy. Confidence is not a guarantee, and these models classify generated behavior—not specific software vulnerabilities. Robustness, unknown-class handling, calibration, and sequence modeling are ongoing work.
 
-## Model versions (v1, v2, v3)
+## Model versions (v1, v2, v3, v4)
 
-Instead of just retraining the model over and over and overwriting it, we keep each attempt around so we can actually measure whether a change helped—not just assume it did. So far there are three versions:
+Instead of just retraining the model over and over and overwriting it, we keep each attempt around so we can actually measure whether a change helped—not just assume it did. So far there are four versions:
 
 | Version | What it is | What changed from the last one |
 | --- | --- | --- |
 | **v1** | The starting point. | — (baseline) |
 | **v2** | The same model design as v1. | Trained on a mix of normal attacks *and* "stealth mode" versions of them—the same attacks, just slowed down and spread out to avoid standing out, the way a real attacker might try to sneak past detection. |
-| **v3** | A different kind of model. | Instead of looking at one network connection ("flow") at a time, it looks at a whole group of related connections in order, like watching a short clip instead of a single snapshot. We used a small **GRU** (a type of neural network built to remember what it saw a moment ago, so it can notice patterns *over time*, not just in one instant) to do this. |
+| **v3** | A different kind of model. | Instead of looking at one network connection ("flow") at a time, it looks at a whole group of related connections in order, like watching a short clip instead of a single snapshot. We used a small **GRU** (a type of neural network built to remember what it saw a moment ago, so it can notice patterns *over time*, not just in one instant) to do this. Trained the same way as v1—no stealth examples. |
+| **v4** | Same "watch a clip" model as v3. | Combined with v2's idea: also trained on the slowed-down, sneaky examples. Two separate improvements, stacked together. |
 
-**What we found when we tested all three against sneaky, slowed-down attacks:**
+**What we found when we tested all four against sneaky, slowed-down attacks** (measured as **macro F1**: a balanced score, out of 100%, that gives every attack type equal weight so a model can't hide a weak spot behind a strong one):
 
-- **v1** struggled—it only caught the sneaky versions a little better than half the time, even though it was very good at catching the normal, non-sneaky versions of the same attacks.
-- **v2** (trained on some sneaky examples) caught nearly all of them. Giving the model better examples to learn from fixed most of the problem.
-- **v3** (never trained on a single sneaky example—same training as v1) *still* did noticeably better than v1. Just being able to see a sequence of connections instead of one at a time gave it some natural resistance to the sneaky pacing trick, for free. The improvement was smaller than v2's and bounced around a bit between test runs (we only had a small number of test examples at this level, so the exact number isn't perfectly stable), but v3 beat v1 every single time we checked.
+| | v1 | v2 | v3 | v4 |
+| --- | --- | --- | --- | --- |
+| Catches normal-pace attacks | 100% | 100% | 100% | 99.1% |
+| Catches sneaky, slowed-down attacks | 56.2% | **100%** | 59.9% | **100%** |
 
-The takeaway: there are two different ways to make this kind of model better—give it better examples to learn from (v2), or give it a better "view" of the data (v3). Neither one replaces the other; both are real, independent improvements, and both are saved on disk separately so we can always go back and compare them later.
+- **v1** struggled with the sneaky versions—barely better than a coin flip on some of them—even though it was very good at the normal-pace versions of the same attacks.
+- **v2** (trained on some sneaky examples) caught essentially all of them. Giving the model better examples to learn from fixed most of the problem.
+- **v3** (same "watch a clip" idea, but never trained on a single sneaky example) did only a little better than v1, not the "noticeably better" result we first reported. That first measurement had a bug: the model was only being shown the first 50 connections of each group, and real groups often run much longer, so it was missing most of exactly the longer, sneakier sessions it needed to see. Once that was fixed, seeing a sequence of connections instead of one at a time turned out to give only a small amount of natural resistance to the pacing trick on its own.
+- **v4** stacks both fixes—the "watch a clip" model design *and* training on sneaky examples—and gets every single sneaky, slowed-down attack type right, including the one (slow, spaced-out "beaconing" traffic, where an already-infected machine checks in with an attacker every so often) that every earlier version struggled with most. On normal-pace traffic it misses a small handful (99.1%, not literally every one)—we found and fixed a second bug while double-checking this (two independently-generated batches of traffic could accidentally reuse the same group ID, blurring two unrelated sessions together when combined for training); the corrected number is this 99.1%, not the flat 100% first reported.
+
+The takeaway: there are two different ways to make this kind of model better—give it better examples to learn from (v2), or give it a better "view" of the data (v3)—and they stack. Neither one alone fully solved the hardest attack type; both together (v4) did. All four versions are saved on disk separately so we can always go back and compare them later. (One honest caveat: these scores are from held-out test examples generated the same way as training data, not a truly different kind of network traffic—so "perfect" here means "perfect on this test," not "will never miss anything.")
 
 ## Project map
 
@@ -100,7 +107,7 @@ The takeaway: there are two different ways to make this kind of model better—g
 | --- | --- |
 | [`src/ids_ml/data/`](src/ids_ml/data/) | Scenario generation, schema, provenance, and dataset splitting |
 | [`features.py`](src/ids_ml/features.py) · [`models/`](src/ids_ml/models/) | Preprocessing, neural architectures, training, and evaluation |
-| [`versions.py`](src/ids_ml/versions.py) | Trains and compares v1/v2/v3 side by side on the same held-out data |
+| [`versions.py`](src/ids_ml/versions.py) | Trains and compares v1/v2/v3/v4 side by side on the same held-out data |
 | [`inference.py`](src/ids_ml/inference.py) · [`alerts.py`](src/ids_ml/alerts.py) | Model scoring and alert/incident records |
 | [`report.py`](src/ids_ml/report.py) · [`ui/`](ui/) | Precomputed report contract and static presentation |
 
@@ -114,6 +121,6 @@ Dashboard checks: `cd ui && npm run check`. See the [UI guide](ui/README.md) for
 
 ---
 
-[Product vision](docs/PRODUCT_VISION.md) · [Agent workflow](AGENTS.md) · [Current handoff](docs/HANDOFF.md)
+[Product vision](docs/PRODUCT_VISION.md) · [How training works](docs/HOW_TRAINING_WORKS.md) · [Agent workflow](AGENTS.md) · [Current handoff](docs/HANDOFF.md)
 
 Agents read these documents and the Git-kb workspace before changing shared files.

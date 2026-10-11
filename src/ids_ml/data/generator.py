@@ -128,6 +128,30 @@ def build_manifest(config: GenerationConfig, df: pd.DataFrame) -> dict:
     }
 
 
+def combine_runs(*dfs: pd.DataFrame) -> pd.DataFrame:
+    """Concatenate multiple generate_dataset() outputs (e.g. a normal-pace
+    run and a separately-seeded stealth-pace run) into one DataFrame with
+    session_id made unique per source run.
+
+    Each generate_dataset() call is internally consistent -- session_id is
+    unique *within* one run -- but naive pd.concat across two runs is not
+    safe: benign session_id comes straight from host_id and attack
+    session_id from scenario+episode-index, both independent of the run's
+    seed. So e.g. "beaconing-00037" exists in every run with >=38 beaconing
+    episodes, and concatenating two such runs without this would silently
+    merge one run's flows for that episode into the other's under any
+    groupby("session_id") (session-level sequence models, alert grouping).
+    Confirmed empirically before fixing: ~94% of session_ids collided
+    between a same-size normal/stealth pair at production scale.
+    """
+    parts = []
+    for df in dfs:
+        df = df.copy()
+        df["session_id"] = df["run_id"].astype(str) + "::" + df["session_id"].astype(str)
+        parts.append(df)
+    return pd.concat(parts, ignore_index=True)
+
+
 def save_dataset(df: pd.DataFrame, manifest: dict, out_dir: Path | str) -> dict[str, Path]:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)

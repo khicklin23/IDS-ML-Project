@@ -1,5 +1,5 @@
-import {human,count,escapeHTML as esc} from './data.mjs';
-import {primaryColumns,packetColumns,unpackRows,filterRaw} from './raw-data.mjs';
+import {human,count,escapeHTML as esc} from './data.mjs?v=v4-20261011-3';
+import {primaryColumns,packetColumns,unpackRows,filterRaw} from './raw-data.mjs?v=v4-20261011-3';
 const $=id=>document.getElementById(id);
 let rows=[],manifest,page=0,sort='event_time',descending=false;
 let session=new URLSearchParams(location.search).get('session')??'';
@@ -20,10 +20,10 @@ let searchTimer;$('raw-search').addEventListener('input',()=>{clearTimeout(searc
 $('raw-prev').addEventListener('click',()=>{page--;render();});$('raw-next').addEventListener('click',()=>{page++;render();});
 $('raw-page').addEventListener('change',()=>{page=Math.floor(Number($('raw-page').value)||1)-1;render();});
 $('raw-reset').addEventListener('click',()=>{$('raw-search').value='';$('raw-family').value='';$('raw-outcome').value='';session='';history.replaceState(null,'','raw.html');page=0;render();});
-async function read(url){const response=await fetch(url);if(!response.ok)throw new Error(`Cannot load ${url} (HTTP ${response.status}).`);return response.json();}
+async function read(url){const response=await fetch(url, {cache:'no-store'});if(!response.ok)throw new Error(`Cannot load ${url} (HTTP ${response.status}).`);return response.json();}
 try {
   const [index,report]=await Promise.all([read('./raw-data/manifest.json'),read('./report.json')]);manifest=index;
-  if(index.run_id!==report.run_id||index.row_count!==report.dataset.manifest.row_count||index.dataset_generated_at!==report.dataset.manifest.generated_at)throw new Error('Raw data and report refer to different runs. Rebuild the matching static dataset.');
+  if(index.run_id!==report.run_id||index.row_count!==report.dataset.manifest.row_count||index.dataset_generated_at!==(report.dataset.manifest.generated_at ?? report.generated_at))throw new Error('Raw data and report refer to different runs. Rebuild the matching static dataset.');
   if(!Array.isArray(index.columns)||!Array.isArray(index.chunks))throw new Error('Invalid raw data manifest.');
   for(const name of index.chunks)if(!/^flows-\d{4}\.json$/.test(name))throw new Error('Invalid chunk filename.');
   let loaded=0;

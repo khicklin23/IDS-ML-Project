@@ -17,7 +17,7 @@ export function bytes(value) {
 export function validateReport(report) {
   const fail = message => { throw new Error(`Invalid report: ${message}`); };
   if (!report || typeof report !== 'object' || Array.isArray(report)) fail('expected a JSON object.');
-  if (report.report_version !== '1.0.0') fail(`unsupported report_version ${String(report.report_version)}; expected 1.0.0.`);
+  if (!['1.0.0','1.1.0'].includes(report.report_version)) fail(`unsupported report_version ${String(report.report_version)}; expected 1.0.0 or 1.1.0.`);
   const required = ['run_id', 'schema_version', 'generated_at', 'dataset', 'binary_model', 'multiclass_model', 'alerts', 'artifact_paths'];
   for (const key of required) if (report[key] == null) fail(`missing ${key}.`);
   const finite = (value, key, min = 0) => { if (!Number.isFinite(value) || value < min) fail(`${key} must be a finite number >= ${min}.`); };

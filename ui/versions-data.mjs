@@ -1,11 +1,12 @@
 export const versionNotes = {
   v1: {title:'Starting point', view:'One connection at a time', training:'Normal traffic + standard attacks', text:'The original network learns from individual flows. It handles the standard examples well, but slower attacks can resemble ordinary traffic.', diagram:'Single flow → learned combinations → family guess'},
   v2: {title:'More varied training', view:'One connection at a time', training:'Normal traffic + standard and slowed-down attacks', text:'The network design stays the same. Adding slowed-down attacks to training gives it examples of behavior it previously struggled with.', diagram:'Single flow → same network, broader training → family guess'},
-  v3: {title:'Connections over time', view:'Related connections in order', training:'Normal traffic + standard attacks; no slowed-down attacks', text:'This network carries information from one connection to the next. That memory lets it use the order of related flows. It is called a GRU: a neural network that keeps and updates a small memory as it reads a sequence.', diagram:'Flow 1 → memory → Flow 2 → updated memory → session guess'}
+  v3: {title:'Connections over time', view:'Related connections in order', training:'Normal traffic + standard attacks; no slowed-down attacks', text:'This network carries information from one connection to the next. That memory lets it use the order of related flows. It is called a GRU: a neural network that keeps and updates a small memory as it reads a sequence. Earlier measurements of this version were affected by a length limit that cut some sessions short; this is the corrected result.', diagram:'Flow 1 → memory → Flow 2 → updated memory → session guess'},
+  v4: {title:'Memory + varied training', view:'Related connections in order', training:'Normal traffic + standard and slowed-down attacks', text:'Same session-memory design as v3, now also trained on slowed-down attacks like v2. Both v2 and v4 correctly classify every session in the saved slowed-down test. This test does not establish a winner between them.', diagram:'Flow 1 → memory → Flow 2 → updated memory → session guess (broader training)'}
 };
 export function validateVersions(data) {
   const fail=()=>{throw new Error('The saved version comparison has an unsupported or incomplete format.');};
-  if(data?.versions_schema!=='1.0.0'||!Array.isArray(data.class_names)||!data.class_names.length||!data.dataset?.session_counts||!data.generated_at)fail();
+  if(typeof data?.versions_schema!=='string'||!Array.isArray(data.class_names)||!data.class_names.length||!data.dataset?.session_counts||!data.generated_at)fail();
   for(const version of Object.keys(versionNotes))for(const kind of ['normal','stealth']) {
     const metrics=data.versions?.[version]?.[`${kind}_session_metrics`];
     if(!metrics||!Number.isInteger(metrics.n)||metrics.n<=0||metrics.n!==data.dataset.session_counts[`${kind}_test`])fail();

@@ -9,9 +9,9 @@ const chunks=await Promise.all(manifest.chunks.map(async name=>unpackRows(manife
 const rows=chunks.flat();
 test('full static export matches the report and has unique flow IDs',()=>{
   assert.equal(rows.length,report.dataset.manifest.row_count);
-  assert.equal(manifest.dataset_generated_at,report.dataset.manifest.generated_at);
+  assert.equal(manifest.dataset_generated_at,report.dataset.manifest.generated_at ?? report.generated_at);
   assert.equal(new Set(rows.map(row=>row.flow_id)).size,rows.length);
-  assert.ok(rows.every(row=>row.run_id===report.run_id));
+  assert.ok(rows.every(row=>(manifest.source_run_ids ?? [report.run_id]).includes(row.run_id)));
   assert.ok(rows.every(row=>'src_port'in row&&'dst_port'in row));
 });
 test('raw filters find records beyond the original hundred-row sample',()=>{

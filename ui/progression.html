@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f6f8"><title>Model progression · IDS Monitor</title><link rel="stylesheet" href="styles.css?v=v4-20261011-3"><script type="module" src="versions.js?v=v4-20261011-3"></script></head><body><a class="skip" href="#main">Skip to model progression</a><header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">▥</span><strong>IDS Monitor</strong><span class="workspace-label">Research workspace</span></a><nav aria-label="Main navigation"><a href="index.html">Overview</a><a href="raw.html">Raw data</a><a href="model.html">Model explained</a><a href="progression.html" aria-current="page">Model progression</a></nav></header><main id="main" class="progression-page"><section class="intro"><div><p class="breadcrumb">Workspace / Model progression</p><h1>How the models changed</h1><p class="intro-copy">Four saved versions. The same tests. See what changed and whether it helped.</p></div></section>
+    <section class="version-workspace panel" aria-labelledby="version-heading">
+      <div class="version-heading"><div><p class="eyebrow">SAVED EXPERIMENTS</p><h2 id="version-heading">Compare versions</h2></div><span class="section-note">v1 → v2 → v3 → v4</span></div>
+      <label class="sr-only" for="version-select">Inspect version</label><select id="version-select" class="sr-only" tabindex="-1"><option value="v1">v1</option><option value="v2">v2</option><option value="v3">v3</option><option value="v4" selected>v4</option></select>
+      <div id="versions-status" class="status" role="status">Reading the version comparison…</div>
+      <div id="versions-content" hidden>
+        <div id="version-progression" class="version-progression" role="group" aria-label="Choose model version"></div>
+        <div class="version-body"><article id="version-detail" aria-live="polite"></article><div class="version-results"><h3>Test results</h3><p class="version-help">One session is a group of related connections. All versions use the same test sessions.</p><div id="version-comparison" class="version-table-wrap"></div><p class="version-help">Balanced score gives every traffic class equal weight. It combines correct guesses and missed examples; this is called macro F1.</p></div></div>
+        <div class="version-bottom"><p id="version-findings"></p><details><summary>About these results</summary><p id="version-provenance"></p></details></div>
+      </div>
+    </section>
+<footer><span>IDS Monitor · Saved model comparison</span><a href="index.html">Back to Overview</a></footer></main></body></html>

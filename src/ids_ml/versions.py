@@ -1,5 +1,5 @@
-"""Model version registry: v1 -> v2 -> v3, compared on one shared harness
-so progression is measurable data, not prose (tasks/model-versions).
+"""Model version registry: v1 -> v2 -> v3 -> v4, compared on one shared
+harness so progression is measurable data, not prose (tasks/model-versions).
 
 - v1: per-flow MLP (ids_ml.models.classifier), trained on one normal
   (non-stealth) generation run. The original attack-type-classifier
@@ -13,8 +13,17 @@ so progression is measurable data, not prose (tasks/model-versions).
   classifier, trained on the SAME normal-only recipe as v1 (same
   preprocessor, same data) so the comparison isolates "better
   architecture" as a *different* improvement axis from v2's.
+- v4: session-level GRU, normal+stealth mixed training (v2's recipe) --
+  the "take both improvements" version. Also fixes a real bug that
+  affected v3 too: sessions were silently truncated to a fixed 50-step
+  cap, but normal-mode benign/beaconing/service_flood/port_scan sessions
+  routinely run 100-250 flows long -- the model was only ever seeing the
+  first fraction of exactly the sessions hardest to tell apart. max_seq_len
+  is now computed from the real data instead of guessed, so nothing gets
+  cut off. v3's historical result was measured under that bug; rerunning
+  this module recomputes v3 correctly too, it is not grandfathered in.
 
-All three are scored on the same axis -- session-level accuracy/macro-F1 --
+All four are scored on the same axis -- session-level accuracy/macro-F1 --
 by rolling v1/v2's per-flow predictions up to one prediction per session
 (majority vote). v1/v2 additionally report their native per-flow metrics,
 since that's the finer-grained thing they were actually built to do.
@@ -30,7 +39,7 @@ from pathlib import Path
 import pandas as pd
 import torch
 
-from ids_ml.data.generator import GenerationConfig, generate_dataset, split_dataset
+from ids_ml.data.generator import GenerationConfig, combine_runs, generate_dataset, split_dataset
 from ids_ml.features import SCENARIO_CLASSES, build_preprocessor, extract_scenario_labels, transform_features
 from ids_ml.inference import score_dataset_multiclass
 from ids_ml.models.evaluate import evaluate_multiclass, multiclass_metrics_from_predictions
@@ -38,14 +47,14 @@ from ids_ml.models.sequence import SequenceTrainConfig, evaluate_sequence_multic
 from ids_ml.models.sessions import build_session_sequences
 from ids_ml.models.train import TrainConfig, save_artifact, train_multiclass_model
 
-VERSIONS_SCHEMA = "1.0.0"
+VERSIONS_SCHEMA = "2.0.0"  # 2.0.0: adds v4, fixes the max_seq_len truncation bug (also affects v3's numbers)
 CLASS_NAMES = list(SCENARIO_CLASSES)
 
 
 def session_level_from_flow_model(model, preprocessor, df: pd.DataFrame, class_names: list[str]) -> dict:
     """Roll a per-flow model's predictions up to one prediction per session
     (majority vote across that session's flows), for a fair comparison
-    against v3's native session-level output.
+    against the sequence models' native session-level output.
     """
     scored = score_dataset_multiclass(model, preprocessor, df, class_names)
     pred_mode = scored.groupby("session_id")["predicted_scenario"].agg(lambda s: s.value_counts().idxmax())
@@ -58,6 +67,16 @@ def session_level_from_flow_model(model, preprocessor, df: pd.DataFrame, class_n
     return multiclass_metrics_from_predictions(y_pred, y_true, class_names)
 
 
+def max_session_length(*dfs: pd.DataFrame) -> int:
+    """Longest session (by flow count) across any number of DataFrames.
+
+    Not prefixed private: ids_ml.report's session-detector export reuses
+    this exact same-data-driven sizing instead of duplicating it, so the
+    two places that build session sequences can't drift out of sync.
+    """
+    return int(max(df.groupby("session_id").size().max() for df in dfs))
+
+
 def run_comparison(
     out_dir: Path | str,
     *,
@@ -67,7 +86,7 @@ def run_comparison(
     episodes_per_family: int = 50,
     train_config: TrainConfig | None = None,
     sequence_config: SequenceTrainConfig | None = None,
-    max_seq_len: int = 50,
+    max_seq_len: int | None = None,
 ) -> dict:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -89,6 +108,14 @@ def run_comparison(
     stealth_train, stealth_val, stealth_test = split_dataset(
         stealth_df, val_frac=0.15, test_frac=0.15, seed=seed + 1000
     )
+
+    # Computed from the real data, not guessed -- a fixed max_len=50 (the
+    # original bug) silently truncated normal-mode sessions that routinely
+    # run 100-250 flows long. +10% headroom in case a later re-run with a
+    # different seed produces a slightly longer session than this one.
+    if max_seq_len is None:
+        observed_max = max_session_length(normal_train, normal_val, normal_test, stealth_train, stealth_val, stealth_test)
+        max_seq_len = int(observed_max * 1.1) + 1
 
     versions: dict[str, dict] = {}
 
@@ -121,8 +148,14 @@ def run_comparison(
     }
 
     # ---------------- v2: per-flow MLP, normal+stealth mixed training ----------------
-    mixed_train = pd.concat([normal_train, stealth_train], ignore_index=True)
-    mixed_val = pd.concat([normal_val, stealth_val], ignore_index=True)
+    # combine_runs, not pd.concat: normal_train/stealth_train come from two
+    # separately-seeded generate_dataset() calls, and session_id naming
+    # (host_id / scenario+episode-index) doesn't depend on seed -- a plain
+    # concat would silently collide session_ids between the two runs. v2 is
+    # per-flow and wouldn't notice, but v4 below groups this same
+    # mixed_train/mixed_val by session_id, so it must be collision-free here.
+    mixed_train = combine_runs(normal_train, stealth_train)
+    mixed_val = combine_runs(normal_val, stealth_val)
     v2_preprocessor = build_preprocessor(mixed_train)
     X_train2 = transform_features(v2_preprocessor, mixed_train)
     y_train2 = extract_scenario_labels(mixed_train)
@@ -183,10 +216,47 @@ def run_comparison(
         "history": v3_history,
     }
 
+    # ---------------- v4: session-level GRU, normal+stealth mixed training (v2's recipe) ----------------
+    mixed_train_seq = build_session_sequences(mixed_train, v2_preprocessor, CLASS_NAMES, max_len=max_seq_len)
+    mixed_val_seq = build_session_sequences(mixed_val, v2_preprocessor, CLASS_NAMES, max_len=max_seq_len)
+    v4_test_seq = build_session_sequences(normal_test, v2_preprocessor, CLASS_NAMES, max_len=max_seq_len)
+    v4_stealth_test_seq = build_session_sequences(stealth_test, v2_preprocessor, CLASS_NAMES, max_len=max_seq_len)
+
+    v4_model, v4_history = train_sequence_model(
+        mixed_train_seq[0], mixed_train_seq[1], mixed_train_seq[2],
+        mixed_val_seq[0], mixed_val_seq[1], mixed_val_seq[2],
+        sequence_config, len(CLASS_NAMES),
+    )
+    v4_normal_session = evaluate_sequence_multiclass(
+        v4_model, v4_test_seq[0], v4_test_seq[1], v4_test_seq[2], CLASS_NAMES
+    )
+    v4_stealth_session = evaluate_sequence_multiclass(
+        v4_model, v4_stealth_test_seq[0], v4_stealth_test_seq[1], v4_stealth_test_seq[2], CLASS_NAMES
+    )
+
+    torch.save(v4_model.state_dict(), out_dir / "v4_model.pt")
+    (out_dir / "v4_metadata.json").write_text(json.dumps({
+        "architecture": "GRU (session-level)",
+        "hidden_dim": sequence_config.hidden_dim,
+        "max_seq_len": max_seq_len,
+        "class_names": CLASS_NAMES,
+    }, indent=2))
+
+    versions["v4"] = {
+        "description": "session-level GRU, normal+stealth mixed training (v2's recipe) -- architecture fix + training fix combined",
+        "architecture": "GRU (session-level)",
+        "training_recipe": "normal+stealth mixed",
+        "normal_flow_metrics": None,
+        "normal_session_metrics": v4_normal_session,
+        "stealth_session_metrics": v4_stealth_session,
+        "history": v4_history,
+    }
+
     comparison = {
         "versions_schema": VERSIONS_SCHEMA,
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "class_names": CLASS_NAMES,
+        "max_seq_len": max_seq_len,
         "dataset": {
             "normal_manifest": normal_manifest,
             "stealth_manifest": stealth_manifest,

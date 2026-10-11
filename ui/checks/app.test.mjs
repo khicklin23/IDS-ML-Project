@@ -26,12 +26,13 @@ await import('../app.js');
 
 test('real report renders evaluation without a training panel',()=>{
   assert.equal(get('dashboard').hidden,false);
-  assert.match(get('metrics').innerHTML,/21,079/);
+  assert.ok(get('metrics').innerHTML.includes(report.dataset.manifest.row_count.toLocaleString('en-US')));
   assert.match(get('comparison-note').textContent,/false positives/);
-  assert.match(get('evidence-note').textContent,/separate multiclass/);
-  assert.match(get('disposition-summary').innerHTML,/1,973/);
+  assert.match(get('evidence-note').textContent,/One v4 session prediction/);
+  assert.match(get('detector-note').textContent,/not independent predictions/);
+  assert.ok(get('disposition-summary').innerHTML.includes(report.binary_model.test_metrics.confusion_matrix.tn.toLocaleString('en-US')));
   assert.match(get('disposition-summary').innerHTML,/correctly left unflagged/);
-  assert.match(get('disposition-summary').innerHTML,/82 benign flows/);
+  assert.ok(get('disposition-summary').innerHTML.includes(`${report.binary_model.test_metrics.confusion_matrix.fp.toLocaleString('en-US')} benign flows`));
   assert.match(get('class-performance').innerHTML,/Normal traffic recognition/);
   assert.match(get('composition').innerHTML,/Normal background/);
 });
@@ -45,11 +46,11 @@ test('benign false-alarm selection persists through search rerenders',async()=>{
 test('search, reset and flow tab update the inline workspace',async()=>{
   get('search').value='no-such-record';await get('search').fire('input');
   assert.match(get('table-body').innerHTML,/No embedded records/);
-  await get('reset-filters').fire('click');assert.equal(get('page-number').textContent,'1 / 1');
+  await get('reset-filters').fire('click');assert.equal(get('page-number').textContent,`1 / ${Math.max(1,Math.ceil(report.alerts.sample.length/20))}`);
   await get('tab-flows').fire('click');
   assert.equal(get('severity-label').hidden,true);
-  assert.equal(get('page-number').textContent,'1 / 5');
-  await get('next').fire('click');assert.equal(get('page-number').textContent,'2 / 5');
+  assert.equal(get('page-number').textContent,`1 / ${Math.ceil(report.dataset.sample_flows.length/20)}`);
+  await get('next').fire('click');assert.equal(get('page-number').textContent,`2 / ${Math.ceil(report.dataset.sample_flows.length/20)}`);
   assert.match(get('evidence-note').textContent,/earliest flows/);
 });
 test('inline alert/session navigation and recorded incidents work',async()=>{
@@ -68,7 +69,7 @@ test('inline alert/session navigation and recorded incidents work',async()=>{
   assert.match(get('detail-body').innerHTML,/Related alerts/);
   await get('detail-body').buttons[0].fire('click');
   assert.equal(get('detail-title').textContent,'Alert investigation');
-  await get('download-report').fire('click');assert.equal(downloadLink.download,'run-1-report.json');
+  await get('download-report').fire('click');assert.equal(downloadLink.download,`${report.run_id}-report.json`);
 });
 test('invalid import preserves the current report, then empty samples render honestly',async()=>{
   const oldMetrics=get('metrics').innerHTML;

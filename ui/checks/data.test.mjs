@@ -54,3 +54,7 @@ test('untrusted report text is escaped and number formatting is explicit',()=>{
   assert.equal(escapeHTML('<script>"&\''),'&lt;script&gt;&quot;&amp;&#39;');
   assert.equal(percent(undefined),'—');assert.equal(elapsed(3661),'01:01:01');assert.equal(bytes(2048),'2.0 KiB');
 });
+
+test('both supported additive report versions load',()=>{for(const report_version of ['1.0.0','1.1.0'])assert.equal(validateReport({...report,report_version}).report_version,report_version);});
+
+test('current report identifies shared session detector with no threshold',()=>{assert.equal(report.detector.model_version,'v4');assert.equal(report.detector.kind,'session_sequence');assert.equal(report.binary_model.test_metrics.threshold,null);});

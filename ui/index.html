@@ -6,55 +6,43 @@
   <meta name="theme-color" content="#f5f6f8">
   <meta name="description" content="A neural intrusion detection research dashboard. Explore precomputed model results, synthetic network flows, and alert evidence.">
   <title>IDS Monitor</title>
-  <link rel="stylesheet" href="styles.css">
-  <script type="module" src="app.js"></script>
-  <script type="module" src="versions.js"></script>
+  <link rel="stylesheet" href="styles.css?v=v4-20261011-3">
+  <script type="module" src="app.js?v=v4-20261011-3"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to dashboard</a>
   <header class="topbar">
     <a class="brand" href="index.html"><span class="brand-mark">▥</span><strong>IDS Monitor</strong><span class="workspace-label">Research workspace</span></a>
-    <nav aria-label="Main navigation"><a href="index.html" aria-current="page">Overview</a><a href="raw.html">Raw data</a><a href="model.html">Model explained</a></nav>
+    <nav aria-label="Main navigation"><a href="index.html" aria-current="page">Overview</a><a href="raw.html">Raw data</a><a href="model.html">Model explained</a><a href="progression.html">Model progression</a></nav>
   </header>
   <main id="main">
     <section id="overview" class="intro">
-      <div><p class="breadcrumb">Workspace / Network monitoring</p><h1>Network activity</h1><p class="intro-copy">Compare three saved models, then review the earlier detection records and raw traffic.</p></div>
+      <div><p class="breadcrumb">Workspace / Network monitoring</p><h1>Network activity</h1><p class="intro-copy">Review saved detection results, classification errors, and alert evidence.</p></div>
       <a id="dataset-link" class="button primary" href="raw.html">Browse full dataset</a>
     </section>
-    <section class="version-workspace" aria-labelledby="version-heading">
-      <div class="section-heading"><div><p class="eyebrow">MODEL DEVELOPMENT</p><h2 id="version-heading">Three versions, two ways to improve</h2></div><label class="version-picker">Inspect version<select id="version-select"><option value="v1">v1 · Starting point</option><option value="v2">v2 · More varied training</option><option value="v3" selected>v3 · Connections over time</option></select></label></div>
-      <p class="explain-copy">A flow is one network connection. A session is a group of related flows. We kept each model so we can compare changes on the same test sessions.</p>
-      <div id="versions-status" class="status" role="status">Reading the version comparison…</div>
-      <div id="versions-content" hidden><div id="version-progression" class="version-progression"></div><article id="version-detail" class="panel" aria-live="polite"></article>
-      <div class="panel version-results"><h3>Same tests, side by side</h3><p class="explain-copy">The score below balances correct family guesses and missed examples, then gives each class equal weight. This is called macro F1. It is not the percentage of attacks caught.</p><div id="version-comparison"></div><p id="version-findings" class="callout"></p><p id="version-provenance" class="footnote"></p></div></div>
-    </section>
-    <div class="snapshot-heading"><h2>Earlier detection & investigation snapshot</h2><p>These alerts, raw-data links, and flow-level results come from the separate saved report below. Selecting a version above changes the version comparison, not these records. The comparison does not include version-specific alerts.</p></div>
+    <p id="detector-note" class="callout"></p>
     <div class="run-meta" id="run-meta">Loading detection snapshot…</div>
     <div class="toolbar"><div class="toolbar-title"><span class="dot"></span><span id="source-label">Bundled showcase report</span></div><div class="actions"><label class="button" for="report-upload">↑ Load report<input id="report-upload" type="file" accept=".json,application/json" class="file-input"></label><button id="download-report" type="button" disabled>↓ Export report</button></div></div>
     <div id="status" role="status" class="status">Reading the completed experiment…</div>
     <div id="dashboard" hidden>
+      <section id="performance" class="section-block overview-performance">
+        <div class="section-heading"><div><p class="eyebrow">MODEL EVALUATION</p><h2>Detection performance</h2></div><span class="section-note" id="test-count"></span></div>
+<article class="panel"><div class="panel-heading"><div><h3>Neural vs. rule-based detection</h3><p>Normal / suspicious decisions · same test flows</p></div><span class="badge inference">MODEL INFERENCE</span></div><div class="chart-legend"><span><i class="cyan"></i>Neural detector</span><span><i class="slate"></i>Rule baseline · comparison only</span></div><div id="comparison"></div><p id="comparison-note" class="callout"></p></article>
+      </section>
+      <section id="detection-records" class="section-block"><div class="section-heading"><div><p class="eyebrow">SAVED RUN</p><h2>Detection records</h2></div><span class="section-note">Saved v4 session model</span></div>
       <div class="metrics" id="metrics"></div>
       <section class="traffic-dispositions" aria-label="Normal traffic versus detections"><div id="disposition-summary" class="disposition-grid"></div><p id="disposition-note" class="footnote"></p></section>
+      </section>
+      <section id="classification" class="section-block"><div class="section-heading"><div><p class="eyebrow">RESULTS & DATA</p><h2>Classification & dataset summary</h2></div></div><div class="grid overview-classification"><article class="panel"><div class="panel-heading"><div><h3>Attack-family recognition</h3><p>Family predictions · correct guesses and missed examples</p></div><span class="badge inference">MODEL INFERENCE</span></div><div id="class-performance"></div><p id="class-note" class="footnote"></p></article><article class="panel"><div class="panel-heading"><div><h3>Classification errors</h3><p>Ground-truth rows × model-prediction columns</p></div><span class="badge evaluation">EVALUATION</span></div><div class="matrix-wrap" id="confusion"></div><p class="footnote">Counts from the held-out set. Brighter cells mean a larger share of that ground-truth class. Hover or focus a cell for its count.</p></article><article class="panel"><div class="panel-heading"><div><h3>Dataset summary</h3><p>Dataset composition & provenance</p></div><span class="badge truth">GROUND TRUTH</span></div><div id="composition"></div><div id="dataset-details" class="detail-list"></div><p class="footnote">Synthetic scenario labels are supplied by the generator. They are not detector discoveries.</p></article></div></section>
       <section id="evidence" class="section-block">
         <div class="section-heading"><div><p class="eyebrow">INVESTIGATION</p><h2>Alerts & incidents</h2></div><span class="section-note">Inspect precomputed records · no live traffic</span></div>
         <article class="panel evidence-panel">
           <div class="evidence-top"><div class="tabs" role="tablist" aria-label="Evidence type"><button id="tab-alerts" role="tab" aria-selected="true" aria-controls="evidence-content">Alerts</button><button id="tab-incidents" role="tab" aria-selected="false" aria-controls="evidence-content" tabindex="-1">Incidents</button><button id="tab-flows" role="tab" aria-selected="false" aria-controls="evidence-content" tabindex="-1">Flow sample</button></div><span id="sample-count" class="section-note"></span></div>
-          <div class="filters"><a id="raw-link" class="button raw-link" href="raw.html">Open raw data</a><label class="search-field"><span>Search evidence</span><input id="search" type="search" placeholder="IP address, family, record ID…"></label><label><span id="category-label">Alert category</span><select id="category-filter"><option value="">All alerts</option><option value="attack">Attack-related alerts</option><option value="benign">Benign false alarms</option></select></label><label><span>Ground-truth family</span><select id="family-filter"><option value="">All families</option></select></label><label id="severity-label"><span>Alert severity</span><select id="severity-filter"><option value="">All severities</option><option>critical</option><option>high</option><option>medium</option><option>low</option></select></label><label><span>Sort by</span><select id="sort"><option value="time">Time · earliest first</option><option value="score">Binary score · highest first</option><option value="volume">Volume · highest first</option></select></label><button id="reset-filters">Reset</button></div>
+          <div class="filters"><a id="raw-link" class="button raw-link" href="raw.html">Open raw data</a><label class="search-field"><span>Search evidence</span><input id="search" type="search" placeholder="IP address, family, record ID…"></label><label><span id="category-label">Alert category</span><select id="category-filter"><option value="">All alerts</option><option value="attack">Attack-related alerts</option><option value="benign">Benign false alarms</option></select></label><label><span>Ground-truth family</span><select id="family-filter"><option value="">All families</option></select></label><label id="severity-label"><span>Alert severity</span><select id="severity-filter"><option value="">All severities</option><option>critical</option><option>high</option><option>medium</option><option>low</option></select></label><label><span>Sort by</span><select id="sort"><option value="time">Time · earliest first</option><option value="score">Suspiciousness score · highest first</option><option value="volume">Volume · highest first</option></select></label><button id="reset-filters">Reset</button></div>
           <div id="investigation" class="investigation-layout"><div id="evidence-content" role="tabpanel" aria-labelledby="tab-alerts"><div class="table-wrap"><table class="evidence-table"><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div><div class="table-footer"><span id="table-summary"></span><div><button id="previous">← Previous</button><span id="page-number"></span><button id="next">Next →</button></div></div></div>
           <aside id="detail-panel" class="detail-panel" hidden aria-label="Selected evidence"><div class="dialog-heading"><div><p class="eyebrow">INVESTIGATION</p><h2 id="detail-title" tabindex="-1"></h2></div><button id="close-detail" aria-label="Close investigation">Close</button></div><div id="detail-body"></div></aside></div>
           <p id="evidence-note" class="footnote"></p>
         </article>
-      </section>
-      <section id="performance" class="section-block">
-        <div class="section-heading"><div><p class="eyebrow">MODEL EVALUATION</p><h2>Detection performance</h2></div><span class="section-note" id="test-count"></span></div>
-        <div class="grid two">
-          <article class="panel"><div class="panel-heading"><div><h3>Neural vs. rule-based detection</h3><p>Binary classification · same held-out test set</p></div><span class="badge inference">MODEL INFERENCE</span></div><div class="chart-legend"><span><i class="cyan"></i>Neural detector</span><span><i class="slate"></i>Rule baseline · comparison only</span></div><div id="comparison"></div><p id="comparison-note" class="callout"></p></article>
-          <article class="panel"><div class="panel-heading"><div><h3>Attack-family recognition</h3><p>Multiclass network · precision, recall & F1</p></div><span class="badge inference">MODEL INFERENCE</span></div><div id="class-performance"></div><p id="class-note" class="footnote"></p></article>
-        </div>
-        <div class="grid matrix-grid">
-          <article class="panel"><div class="panel-heading"><div><h3>Classification errors</h3><p>Ground-truth rows × model-prediction columns</p></div><span class="badge evaluation">EVALUATION</span></div><div class="matrix-wrap" id="confusion"></div><p class="footnote">Counts from the held-out set. Brighter cells mean a larger share of that ground-truth class. Hover or focus a cell for its count.</p></article>
-          <article class="panel"><div class="panel-heading"><div><h3>Dataset summary</h3><p>Dataset composition & provenance</p></div><span class="badge truth">GROUND TRUTH</span></div><div id="composition"></div><div id="dataset-details" class="detail-list"></div><p class="footnote">Synthetic scenario labels are supplied by the generator. They are not detector discoveries.</p></article>
-        </div>
       </section>
       <footer><span>IDS Monitor <span class="muted">· Synthetic dataset / offline predictions</span></span><span id="footer-version"></span></footer>
     </div>

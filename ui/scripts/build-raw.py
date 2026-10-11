@@ -12,7 +12,10 @@ manifest = json.loads((source / 'manifest.json').read_text())
 if manifest != report['dataset']['manifest']:
     raise ValueError('Dataset manifest differs from bundled report; sync the matching report first.')
 df = pd.read_parquet(source / 'flows.parquet')
-if len(df) != manifest['row_count'] or set(df.run_id) != {report['run_id']}:
+expected_runs = {report['run_id']}
+if report.get('detector', {}).get('kind') == 'session_sequence' and manifest.get('stealth_included'):
+    expected_runs = {f"run-{manifest['config']['seed']}", f"run-{manifest['stealth_config']['seed']}"}
+if len(df) != manifest['row_count'] or set(df.run_id) != expected_runs:
     raise ValueError('Dataset does not match the report run/count.')
 out = ui / 'raw-data'
 out.mkdir(exist_ok=True)
@@ -24,7 +27,7 @@ for start in range(0, len(df), 1000):
     chunks.append(name)
 (out / 'manifest.json').write_text(json.dumps({
     'run_id': report['run_id'], 'schema_version': report['schema_version'],
-    'dataset_generated_at': manifest['generated_at'], 'row_count': len(df),
-    'columns': list(df.columns), 'chunks': chunks,
+    'dataset_generated_at': manifest.get('generated_at', report['generated_at']), 'row_count': len(df),
+    'columns': list(df.columns), 'chunks': chunks, 'source_run_ids': sorted(expected_runs),
 }, indent=2))
 print(f'Exported {len(df):,} raw flows in {len(chunks)} static chunks.')

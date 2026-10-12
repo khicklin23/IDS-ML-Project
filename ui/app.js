@@ -1,4 +1,4 @@
-import {colors, human, count, percent, escapeHTML as esc, elapsed, bytes, validateReport, selectEvidence, incidentGroups, modelName} from './data.mjs?v=sona-prod-polish-1';
+import {colors, human, count, percent, escapeHTML as esc, elapsed, bytes, validateReport, selectEvidence, incidentGroups, modelName} from './data.mjs?v=sona-filter-labels-1';
 
 const $ = id => document.getElementById(id);
 let report, sourceName = 'Bundled showcase report', tab = 'alerts', page = 0;
@@ -80,7 +80,7 @@ function renderEvidence() {
   $('severity-label').hidden=!isAlert;
   $('sort').querySelector('[value="score"]').disabled=!isAlert;
   $('evidence-content').setAttribute('aria-labelledby',`tab-${tab}`);
-  const headers=isAlert?['Severity','Source → destination','Model-predicted family','Ground-truth family','Suspiciousness score','Flows','Review']:['Sim. time','Source → destination','Service / protocol','Bytes sent / received','Ground-truth family','Outcome','Review'];
+  const headers=isAlert?['Severity','Source → destination','Predicted type','Actual type','Suspiciousness score','Flows','Review']:['Sim. time','Source → destination','Service / protocol','Bytes sent / received','Actual type','Outcome','Review'];
   $('table-head').innerHTML=`<tr>${headers.map(h=>`<th scope="col">${h}</th>`).join('')}</tr>`;
   $('table-body').innerHTML=rows.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE).map((row,index)=>{
     const pair=`<span class="mono">${esc(row.src_ip)} <span class="muted">→</span> ${esc(row.dst_ip)}</span>`;
@@ -140,7 +140,7 @@ function resetFilters() {
 }
 function renderAll() {
   resetFilters();
-  $('family-filter').innerHTML='<option value="">All families</option>'+(report.multiclass_model.class_names.includes('benign')?'<optgroup label="Normal traffic"><option value="benign">Benign</option></optgroup>':'')+'<optgroup label="Attack families">'+report.multiclass_model.class_names.filter(name=>name!=='benign').map(name=>`<option value="${esc(name)}">${esc(human(name))}</option>`).join('')+'</optgroup>';
+  $('family-filter').innerHTML='<option value="">All types</option>'+(report.multiclass_model.class_names.includes('benign')?'<optgroup label="Normal traffic"><option value="benign">Normal traffic</option></optgroup>':'')+'<optgroup label="Attack types">'+report.multiclass_model.class_names.filter(name=>name!=='benign').map(name=>`<option value="${esc(name)}">${esc(human(name))}</option>`).join('')+'</optgroup>';
   renderOverview();renderPerformance();renderEvidence();
   $('dataset-link').textContent=sourceName==='Bundled showcase report'?'Browse full dataset':'Browse bundled dataset';
   $('raw-link').textContent=sourceName==='Bundled showcase report'?'Open raw data':'Bundled raw data';

@@ -50,8 +50,6 @@ test('original progression leads with matched scores and preserved historical ev
  if(research.four_model_comparison){
   assert.doesNotMatch(get('version-comparison').innerHTML,/Not tested/);
   assert.match(get('version-comparison').innerHTML,/Slowed-down/);
-  assert.match(get('timing-comparison-note').textContent,/exact same sessions/);
-  assert.match(get('timing-comparison-note').textContent,/one-third/);
   assert.match(get('version-findings').textContent,/Adding memory/);
   assert.match(get('version-findings').textContent,/91.7%/);
   assert.match(get('version-findings').textContent,/99.4%/);
@@ -66,8 +64,6 @@ test('original progression leads with matched scores and preserved historical ev
   assert.match(get('version-comparison').innerHTML,/99.5%/);
  }
  assert.match(get('version-comparison').innerHTML,/100.0%/);
- assert.match(get('timing-comparison-note').textContent,/Overview still uses the original Sona model/);
- assert.match(get('saved-version-comparison').innerHTML,/100.0%/);
  get('version-select').value='v2';get('version-select').handlers.change();
  assert.match(get('version-comparison').innerHTML,/99.0%/);
  assert.match(get('version-detail').innerHTML,/More varied training/);
@@ -105,4 +101,11 @@ test('comparison headings expose distinct hover and keyboard explanations',()=>{
  assert.match(html,/recognition of the sequence, not execution speed/);
  assert.match(html,/divided by three/);
  assert.match(html,/regardless of its number of sessions/);
+});
+
+test('production progression omits all requested expandable result sections',()=>{
+ const html=readFileSync(new URL('../progression.html',import.meta.url),'utf8');
+ assert.doesNotMatch(html,/About the matched tests|Original traffic test scores|About these results/);
+ const source=readFileSync(new URL('../versions.js',import.meta.url),'utf8');
+ assert.doesNotMatch(source,/saved-version-comparison|timing-comparison-note|version-provenance/);
 });

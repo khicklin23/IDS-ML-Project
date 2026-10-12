@@ -1,5 +1,5 @@
-import {human,count,escapeHTML as esc} from './data.mjs?v=sona-release-clarity-4';
-import {primaryColumns,packetColumns,unpackRows,filterRaw} from './raw-data.mjs?v=sona-release-clarity-4';
+import {human,count,escapeHTML as esc} from './data.mjs?v=sona-prod-polish-1';
+import {primaryColumns,packetColumns,unpackRows,filterRaw} from './raw-data.mjs?v=sona-prod-polish-1';
 const $=id=>document.getElementById(id);
 let rows=[],manifest,page=0,sort='event_time',descending=false;
 let session=new URLSearchParams(location.search).get('session')??'';

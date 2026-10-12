@@ -32,6 +32,8 @@ test('all packaged pages render using embedded data without network requests',as
   const code=page.match(/<script>([\s\S]*?)<\/script>/)[1];
   await new Script(code).runInContext(context);
   assert.deepEqual(errors,[],name);
+  for(const element of elements.values())assert.doesNotMatch(element.innerHTML+element.textContent,/\u2014/,name);
+  assert.doesNotMatch(page,/\u2014|&mdash;|&#8212;/,name);
   if(name==='index.html'){assert.equal(get('dashboard').hidden,false);assert.match(get('metrics').innerHTML,/87,505/);}
   if(name==='raw.html'){assert.equal(get('raw-status').hidden,true);assert.match(get('raw-summary').textContent,/session run-7::port_scan-00000/);}
   if(name==='model.html')assert.match(get('model-network').innerHTML,/Sona neural network/);

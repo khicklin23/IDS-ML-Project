@@ -15,3 +15,10 @@ test('requested configuration sections are removed while the neural diagram rema
  assert.doesNotMatch(html,/Training settings in this saved run|Architecture details|saved-training-settings|architecture-details|Connections learn; class weights balance|weight-bytes|neuron-result/);
  assert.match(html,/id="model-network"/);
 });
+
+test('network controls share the diagram scroll area and attack cards have layout identities',()=>{
+ const html=readFileSync(new URL('../model.html',import.meta.url),'utf8');
+ assert.match(html,/<div class="network-scroll"><div class="network-diagram">[\s\S]*?<div class="layer-controls"/);
+ assert.match(get('training-examples').innerHTML,/data-scenario="port_scan"/);
+ assert.match(get('training-examples').innerHTML,/data-scenario="service_flood"/);
+});

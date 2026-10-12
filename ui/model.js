@@ -1,4 +1,4 @@
-import {validateReport, escapeHTML as esc, human, count} from './data.mjs?v=sona-model-trim-1';
+import {validateReport, escapeHTML as esc, human, count} from './data.mjs?v=sona-prod-polish-1';
 const $ = id => document.getElementById(id);
 let report, layer = 'input';
 const buttons = [...document.querySelectorAll('[data-layer]')];
@@ -53,10 +53,10 @@ function renderNetwork() {
   });
   $('model-network').innerHTML = svg;
   const explanations = {
-    input: ['Start with measurements', 'Each flow becomes a row of numbers. Scaling puts numerical measurements on comparable ranges (so a byte count in the thousands doesn’t drown out a duration measured in single digits); categorical fields (like protocol or service, which aren’t numbers) become indicator columns — one yes/no switch per possible value. The scenario label is the answer used during training, not an input.'],
-    hidden1: ['Combine several clues', `The first layer has ${width} neurons (small processing units, each one a tiny calculator). Each neuron forms a weighted combination of the inputs plus a small adjustment (called a bias), then applies ReLU — a simple rule that keeps positive results and turns negative ones into zero. A neuron can respond to several clues together; it is not assigned a rule such as “detect port scans.”`],
+    input: ['Start with measurements', 'Each flow becomes a row of numbers. Scaling puts numerical measurements on comparable ranges (so a byte count in the thousands doesn’t drown out a duration measured in single digits); categorical fields (like protocol or service, which aren’t numbers) become indicator columns, with one yes/no switch per possible value. The scenario label is the answer used during training, not an input.'],
+    hidden1: ['Combine several clues', `The first layer has ${width} neurons (small processing units, each one a tiny calculator). Each neuron forms a weighted combination of the inputs plus a small adjustment (called a bias), then applies ReLU, a simple rule that keeps positive results and turns negative ones into zero. A neuron can respond to several clues together; it is not assigned a rule such as “detect port scans.”`],
     hidden2: ['Combine the learned responses', `The second layer has ${second} neurons. It combines the first layer’s responses into another representation (its own reorganized version of the same information). These nonlinear combinations (ones that aren’t just a straight-line scaling) let similar byte counts produce different predictions when duration, service, or connection outcome differ.`],
-    output: family ? ['Choose a behavior family', `This separately trained network has ${outputs} outputs — one per attack family, plus benign. Softmax (a formula that turns raw scores into percentages that add up to 100%) turns them into a distribution; the highest value names the predicted class. These are learned similarities, not proof of an attack’s intent.`] : ['Make a flagging decision', 'This separately trained network has one output. Sigmoid (a curve that squeezes any number into a range between zero and one) turns it into a suspiciousness score. Comparing that score with the configured threshold decides whether to flag the flow.']
+    output: family ? ['Choose a behavior family', `This separately trained network has ${outputs} outputs, one per attack family, plus benign. Softmax (a formula that turns raw scores into percentages that add up to 100%) turns them into a distribution; the highest value names the predicted class. These are learned similarities, not proof of an attack’s intent.`] : ['Make a flagging decision', 'This separately trained network has one output. Sigmoid (a curve that squeezes any number into a range between zero and one) turns it into a suspiciousness score. Comparing that score with the configured threshold decides whether to flag the flow.']
   };
   const [title, text] = explanations[layer];
   $('layer-explanation').innerHTML = `<h3>${title}</h3><p>${text}</p>`;
@@ -87,7 +87,7 @@ try {
     // equally "full" -- these are illustrative shapes, not a scale that's
     // meant to compare across cards, so a shared axis would mislead.
     const bars = raw.map((h,i) => `<rect x="${i*18}" y="${44 - (h / max) * 40}" width="10" height="${(h / max) * 40}" rx="2" fill="currentColor"/>`).join('');
-    return `<article class="scenario-example ${name === 'benign' ? 'normal-example' : ''}"><div><span class="example-kind">${name === 'benign' ? 'NORMAL TRAFFIC' : 'SIMULATED ATTACK'}</span><h3>${esc(human(name))}</h3><p>${esc(descriptions[name] || 'Generated examples for this behavior family.')}</p></div><svg viewBox="0 0 180 48" aria-hidden="true">${bars}</svg><strong>${count(n)} <small>flows</small></strong></article>`;
+    return `<article data-scenario="${esc(name)}" class="scenario-example ${name === 'benign' ? 'normal-example' : ''}"><div><span class="example-kind">${name === 'benign' ? 'NORMAL TRAFFIC' : 'SIMULATED ATTACK'}</span><h3>${esc(human(name))}</h3><p>${esc(descriptions[name] || 'Generated examples for this behavior family.')}</p></div><svg viewBox="0 0 180 48" aria-hidden="true">${bars}</svg><strong>${count(n)} <small>flows</small></strong></article>`;
   }).join('');
   const threshold = report.binary_model.test_metrics.threshold;
   const thresholdPct = Number.isFinite(threshold) ? Math.max(0, Math.min(1, threshold)) * 100 : 0;

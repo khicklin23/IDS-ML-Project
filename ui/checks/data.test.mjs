@@ -52,7 +52,7 @@ test('IP search, severity, score sorting and flow volume work on actual samples'
 });
 test('untrusted report text is escaped and number formatting is explicit',()=>{
   assert.equal(escapeHTML('<script>"&\''),'&lt;script&gt;&quot;&amp;&#39;');
-  assert.equal(percent(undefined),'—');assert.equal(elapsed(3661),'01:01:01');assert.equal(bytes(2048),'2.0 KiB');
+  assert.equal(percent(undefined),'N/A');assert.equal(elapsed(3661),'01:01:01');assert.equal(bytes(2048),'2.0 KiB');
 });
 
 test('both supported additive report versions load',()=>{for(const report_version of ['1.0.0','1.1.0'])assert.equal(validateReport({...report,report_version}).report_version,report_version);});

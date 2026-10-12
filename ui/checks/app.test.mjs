@@ -27,7 +27,7 @@ await import('../app.js');
 test('real report renders evaluation without a training panel',()=>{
   assert.equal(get('dashboard').hidden,false);
   assert.ok(get('metrics').innerHTML.includes(report.dataset.manifest.row_count.toLocaleString('en-US')));
-  assert.match(get('comparison-note').textContent,/false positives/);
+  assert.match(get('comparison-note').textContent,/held-out flows/);
   assert.match(get('evidence-note').textContent,/One Sona session prediction/);
   assert.doesNotMatch(get('detector-note').textContent,/One model reads/);
   assert.ok(get('disposition-summary').innerHTML.includes(report.binary_model.test_metrics.confusion_matrix.tn.toLocaleString('en-US')));
@@ -77,4 +77,17 @@ test('classification and dataset panels display the current report values',()=>{
  for(const n of Object.values(report.dataset.split_sizes))assert.ok(get('dataset-details').innerHTML.includes(n.toLocaleString('en-US')));
  assert.ok(get('dataset-details').innerHTML.includes(report.dataset.manifest.row_count.toLocaleString('en-US')));
  for(const row of report.multiclass_model.test_metrics.confusion_matrix)for(const n of row)assert.ok(get('confusion').innerHTML.includes(n.toLocaleString('en-US')));
+});
+
+test('Sona-only performance retains every percentage and explains metrics',()=>{
+ const html=get('comparison').innerHTML;
+ assert.doesNotMatch(html,/Fixed rule|Rule baseline/);
+ for(const key of ['f1','recall','precision','false_positive_rate']){
+  assert.ok(html.includes((report.binary_model.test_metrics[key]*100).toFixed(1)+'%'));
+  assert.ok(html.includes(`aria-describedby="detection-help-${key}"`));
+ }
+ assert.equal((html.match(/role="tooltip"/g)||[]).length,4);
+ assert.match(html,/how many did Sona catch/);
+ assert.match(html,/normal flows as the denominator/);
+ assert.match(html,/Lower is better/);
 });

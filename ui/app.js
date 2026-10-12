@@ -1,4 +1,4 @@
-import {colors, human, count, percent, escapeHTML as esc, elapsed, bytes, validateReport, selectEvidence, incidentGroups, modelName} from './data.mjs?v=sona-ui-cleanup-1';
+import {colors, human, count, percent, escapeHTML as esc, elapsed, bytes, validateReport, selectEvidence, incidentGroups, modelName} from './data.mjs?v=sona-prod-polish-1';
 
 const $ = id => document.getElementById(id);
 let report, sourceName = 'Bundled showcase report', tab = 'alerts', page = 0;
@@ -35,10 +35,15 @@ function renderOverview() {
   $('footer-version').textContent = `REPORT ${report.report_version} / SCHEMA ${report.schema_version}`;
 }
 function renderPerformance() {
-  const bin = report.binary_model.test_metrics, rule = report.binary_model.rule_baseline_metrics;
-  $('comparison').innerHTML = [['f1','F1 · balances correct flags and missed attacks'],['recall','Recall · suspicious flows caught'],['precision','Precision · flagged flows actually suspicious'],['false_positive_rate','False-positive rate · lower is better']].map(([key,label])=>`<div class="compare-row"><div class="compare-label">${label}</div><div class="bar-line" aria-label="Neural ${label}: ${percent(bin[key])}"><span class="compare-model-name">Sona</span>${bar(bin[key],colors[2])}<span class="bar-number">${percent(bin[key])}</span></div><div class="bar-line" aria-label="Rule ${label}: ${percent(rule[key])}"><span class="compare-model-name">Fixed rule</span>${bar(rule[key],colors[0])}<span class="bar-number muted">${percent(rule[key])}</span></div></div>`).join('');
-  const delta = (bin.recall-rule.recall)*100;
-  $('comparison-note').textContent = `These are two different detectors on the same test flows. Higher F1 means a better balance of correct flags and missed attacks; it is not accuracy. The fixed rule’s low score comes largely from the attack flows it misses. Neural recall is ${Math.abs(delta).toFixed(1)} percentage points ${delta>=0?'higher':'lower'}. Tradeoff: ${count(bin.confusion_matrix.fp)} neural false positives vs. ${count(rule.confusion_matrix.fp)} rule false positives. This is one synthetic experiment, not an equal-false-alarm-rate comparison.${bin.n!==rule.n?' Warning: test-set counts differ.':''}`;
+  const bin = report.binary_model.test_metrics;
+  const help={
+    f1:'One score that balances catching attacks with avoiding false alarms. It combines precision and recall. Higher is better; it is not the percentage of all guesses that were correct.',
+    recall:'Of the attack flows in the test, how many did Sona catch? A higher percentage means fewer attacks were missed.',
+    precision:'Of the flows Sona flagged, how many really belonged to a generated attack? A higher percentage means fewer flagged flows were false alarms.',
+    false_positive_rate:'Of the normal flows in the test, how many did Sona flag by mistake? These are false positives, or false alarms. Lower is better. This uses normal flows as the denominator, unlike precision.'
+  };
+  $('comparison').innerHTML = [['f1','F1','Higher is better'],['recall','Recall','Higher is better'],['precision','Precision','Higher is better'],['false_positive_rate','False positives','Lower is better']].map(([key,label,direction])=>`<article class="detection-metric"><div class="metric-label"><span>${label}</span><button type="button" class="metric-info detection-info" aria-label="About ${label}" aria-describedby="detection-help-${key}">i<span class="metric-tooltip" role="tooltip" id="detection-help-${key}">${esc(help[key])}</span></button></div><strong class="detection-value">${percent(bin[key])}</strong>${bar(bin[key],colors[2])}<span class="metric-desc">${direction}</span></article>`).join('');
+  $('comparison-note').textContent = `${count(bin.n)} held-out flows, checked against generated ground truth. Related flows share a session prediction. Hover or focus an info icon for a plain-language explanation.`;
   const mc = report.multiclass_model, perClass = mc.test_metrics.per_class;
   const classRow=(name)=>{
     const i=mc.class_names.indexOf(name);

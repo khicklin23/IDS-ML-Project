@@ -26,7 +26,7 @@ Validation histories showed that successful runs needed more than 20 epochs befo
 | Unseen data / control | Beta 2 accuracy | Sona accuracy | Simple timing-summary accuracy |
 |---|---:|---:|---:|
 | Familiar timing ranges | 50.00% | **99.02%** | 100.00% |
-| Familiar timing, Sona's test order shuffled | 50.00% | 50.15% | — |
+| Familiar timing, Sona's test order shuffled | 50.00% | 50.15% |, |
 | Slower, noisier timing; new repetition width | 50.00% | 50.17% | 80.13% |
 
 All three Sona runs scored 98.85–99.20% on familiar timing. Its average macro F1 was 99.02%. At thresholds selected to allow at most 1% false alarms on validation, it detected 99.20% of unseen attack-like sessions, with an actual benign false-alarm rate of 1.40%. Beta 2 detected 1.37% while generating the same 1.37% false-alarm rate: its scores could not distinguish paired classes.

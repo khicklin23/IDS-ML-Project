@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f6f8"><title>Model explained · IDS Monitor</title><meta name="description" content="See how the IDS models turn flow records into predictions, learn weights from examples, and distinguish normal traffic from attack families."><link rel="stylesheet" href="styles.css?v=sona-model-trim-1"><script type="module" src="model.js?v=sona-model-trim-1"></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f6f8"><title>Model explained · IDS Monitor</title><meta name="description" content="See how the IDS models turn flow records into predictions, learn weights from examples, and distinguish normal traffic from attack families."><link rel="stylesheet" href="styles.css?v=sona-prod-polish-1"><script type="module" src="model.js?v=sona-prod-polish-1"></script></head>
 <body>
 <a class="skip" href="#main">Skip to explanation</a>
 <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">▥</span><strong>Sona</strong><span class="workspace-label">Neural network IDS</span></a><nav aria-label="Main navigation"><a href="index.html">Overview</a><a href="model.html" aria-current="page">Model explained</a><a href="progression.html">Model progression</a><a id="dataset-link" href="raw.html" class="nav-raw button primary">Browse full dataset</a></nav></header>
@@ -9,9 +9,10 @@
   <div id="model-status" class="status" role="status">Loading the saved run’s model configuration…</div>
   <section class="panel architecture-panel">
     <div class="panel-heading"><div><h2>Inside the network</h2><p>The Sona model reads related connections in order and updates a small memory as it goes.</p></div></div>
-    <div class="network-scroll"><svg id="model-network" viewBox="0 0 980 300" role="img" aria-label="Illustrative network architecture with ordered flow features, a shared memory and family outputs"></svg></div>
+    <div class="network-scroll"><div class="network-diagram"><svg id="model-network" viewBox="0 0 980 300" role="img" aria-label="Illustrative network architecture with ordered flow features, a shared memory and family outputs"></svg>
+<div class="layer-controls" role="group" aria-label="Explore the network layers"><button data-layer="input" aria-pressed="true">1. Inputs</button><button data-layer="hidden1" aria-pressed="false">2. Update memory</button><button data-layer="hidden2" aria-pressed="false">3. Session summary</button><button data-layer="output" aria-pressed="false">4. Output</button></div>
+</div></div>
     <p class="footnote diagram-note">Architecture illustration, not live activity. Dots represent groups of inputs, memory values, and outputs. Connections and the loop show how information travels; they are not measured weights or live activity. Explore each stage below.</p>
-    <div class="layer-controls" role="group" aria-label="Explore the network layers"><button data-layer="input" aria-pressed="true">1. Inputs</button><button data-layer="hidden1" aria-pressed="false">2. Update memory</button><button data-layer="hidden2" aria-pressed="false">3. Session summary</button><button data-layer="output" aria-pressed="false">4. Output</button></div>
     <div id="layer-explanation" class="layer-explanation" aria-live="polite"></div>
   </section>
   <section class="explain-section"><div class="section-heading"><div><p class="eyebrow">TRAINING DATA</p><h2>Examples give the model something to learn</h2></div><span id="training-source" class="section-note"></span></div>

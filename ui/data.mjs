@@ -1,16 +1,16 @@
 export const modelName = id => ({v1:'Beta 1', v2:'Beta 2', v3:'Beta 3', v4:'Sona'}[id] ?? String(id ?? 'Model'));
 export const colors = ['#718096', '#7c65a3', '#3471ac', '#448778', '#a77b35', '#a74b58'];
 export const human = value => String(value ?? 'Unavailable').replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
-export const count = value => Number.isFinite(value) ? value.toLocaleString('en-US') : '—';
-export const percent = value => Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : '—';
-export const escapeHTML = value => String(value ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
+export const count = value => Number.isFinite(value) ? value.toLocaleString('en-US') : 'N/A';
+export const percent = value => Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : 'N/A';
+export const escapeHTML = value => String(value ?? 'N/A').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 export function elapsed(seconds) {
-  if (!Number.isFinite(seconds)) return '—';
+  if (!Number.isFinite(seconds)) return 'N/A';
   const hours = Math.floor(seconds / 3600), minutes = Math.floor(seconds % 3600 / 60), secs = Math.floor(seconds % 60);
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 export function bytes(value) {
-  if (!Number.isFinite(value)) return '—';
+  if (!Number.isFinite(value)) return 'N/A';
   if (value < 1024) return `${count(value)} B`;
   const power = Math.min(3, Math.floor(Math.log(value) / Math.log(1024)));
   return `${(value / 1024 ** power).toFixed(1)} ${['B','KiB','MiB','GiB'][power]}`;

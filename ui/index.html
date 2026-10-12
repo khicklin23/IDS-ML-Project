@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#f5f6f8">
   <meta name="description" content="A neural intrusion detection research dashboard. Explore precomputed model results, synthetic network flows, and alert evidence.">
   <title>Sona · Detection overview</title>
-  <link rel="stylesheet" href="styles.css?v=sona-ui-cleanup-1">
-  <script type="module" src="app.js?v=sona-ui-cleanup-1"></script>
+  <link rel="stylesheet" href="styles.css?v=sona-prod-polish-1">
+  <script type="module" src="app.js?v=sona-prod-polish-1"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to dashboard</a>
@@ -23,7 +23,7 @@
     <div id="dashboard" hidden>
       <section id="performance" class="section-block overview-performance">
         <div class="section-heading"><div><p class="eyebrow">MODEL EVALUATION</p><h2>Detection performance</h2></div><span class="section-note" id="test-count"></span></div>
-<article class="panel"><div class="panel-heading"><div><h3>Neural vs. rule-based detection</h3><p>Normal / suspicious decisions · same test flows</p></div><span class="badge inference">MODEL INFERENCE</span></div><p class="baseline-explanation">Sona learns from examples of related connections. The rule baseline is one fixed check: flag a rejected or timed-out connection only if it lasts less than one second and sends at most three packets. It is a simple comparison—not a complete commercial IDS—and misses attacks outside that pattern.</p><div class="chart-legend"><span><i class="cyan"></i>Neural detector</span><span><i class="slate"></i>Rule baseline · comparison only</span></div><div id="comparison"></div><p id="comparison-note" class="callout"></p></article>
+<article class="panel"><div class="panel-heading"><div><h3>Sona detection performance</h3><p>Normal / suspicious decisions on the held-out test flows</p></div><span class="badge inference">MODEL INFERENCE</span></div><div id="comparison"></div><p id="comparison-note" class="footnote"></p></article>
       </section>
       <section id="classification" class="section-block"><div class="section-heading"><div><p class="eyebrow">RESULTS & DATA</p><h2>Classification & dataset summary</h2></div></div><div class="grid overview-classification"><article class="panel"><div class="panel-heading"><div><h3>Attack-family recognition</h3><p>Held-out showcase flows · family predictions</p></div><span class="badge inference">MODEL INFERENCE</span></div><div id="class-performance"></div><p id="class-note" class="footnote"></p></article><article class="panel"><div class="panel-heading"><div><h3>Classification errors</h3><p>Ground-truth rows × model-prediction columns</p></div><span class="badge evaluation">EVALUATION</span></div><div class="matrix-wrap" id="confusion"></div><p class="footnote">Counts from the showcase’s held-out flows. Brighter cells mean a larger share of that ground-truth class. Hover or focus a cell for its count.</p></article><article class="panel"><div class="panel-heading"><div><h3>Dataset summary</h3><p>Complete showcase dataset</p></div><span class="badge truth">GROUND TRUTH</span></div><div id="composition"></div><div id="dataset-details" class="detail-list"></div><p class="footnote">Synthetic scenario labels are supplied by the generator. They are not detector discoveries.</p></article></div></section>
       <section id="detection-records" class="section-block"><div class="section-heading"><div><p class="eyebrow">DETECTION</p><h2>Detection records</h2></div><span class="section-note">Saved Sona session model</span></div>

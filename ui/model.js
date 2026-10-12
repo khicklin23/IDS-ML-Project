@@ -1,3 +1,5 @@
+import {installMobileSupport} from './mobile.mjs?v=sona-mobile-1';
+installMobileSupport();
 import {validateReport, escapeHTML as esc, human, count} from './data.mjs?v=sona-prod-polish-1';
 const $ = id => document.getElementById(id);
 let report, layer = 'input';

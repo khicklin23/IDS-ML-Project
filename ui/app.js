@@ -1,3 +1,5 @@
+import {installMobileSupport} from './mobile.mjs?v=sona-mobile-1';
+installMobileSupport();
 import {colors, human, count, percent, escapeHTML as esc, elapsed, bytes, validateReport, selectEvidence, incidentGroups, modelName} from './data.mjs?v=sona-filter-labels-1';
 
 const $ = id => document.getElementById(id);

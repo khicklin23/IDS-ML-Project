@@ -1,3 +1,5 @@
+import {installMobileSupport} from './mobile.mjs?v=sona-mobile-1';
+installMobileSupport();
 import {human,count,escapeHTML as esc} from './data.mjs?v=sona-prod-polish-1';
 import {primaryColumns,packetColumns,unpackRows,filterRaw} from './raw-data.mjs?v=sona-prod-polish-1';
 const $=id=>document.getElementById(id);

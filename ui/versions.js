@@ -1,3 +1,5 @@
+import {installMobileSupport} from './mobile.mjs?v=sona-mobile-1';
+installMobileSupport();
 import {versionNotes, validateVersions, selectedSummary} from './versions-data.mjs?v=sona-prod-polish-1';
 import {escapeHTML as esc, human, count, percent, modelName} from './data.mjs?v=sona-prod-polish-1';
 import {validateResearch} from './research-data.mjs?v=sona-prod-polish-1';
@@ -18,21 +20,6 @@ const comparisonHelp={
 };
 function comparisonHeading(label,key,subtitle=''){
   return `<th><span class="comparison-label">${esc(label)} <button type="button" class="metric-info comparison-info" data-metric-help="${key}" aria-label="About ${esc(label)}" aria-describedby="comparison-help-${key}">i<span id="comparison-help-${key}" class="metric-tooltip" role="tooltip">${esc(comparisonHelp[key])}</span></button></span>${subtitle?`<br><span>${esc(subtitle)}</span>`:''}</th>`;
-}
-function attachComparisonHelp(){
-  $('version-comparison').querySelectorAll('[data-metric-help]').forEach(button=>{
-    const position=()=>{
-      button.classList.remove('help-dismissed');
-      const box=button.getBoundingClientRect(),tooltip=button.querySelector('[role="tooltip"]');
-      const width=Math.min(260,window.innerWidth-32);
-      tooltip.style.left=`${Math.max(16,Math.min(box.left+box.width/2-width/2,window.innerWidth-width-16))}px`;
-      tooltip.style.top=`${Math.max(16,Math.min(box.bottom,window.innerHeight-tooltip.offsetHeight-16))}px`;
-    };
-    button.addEventListener('pointerenter',position);
-    button.addEventListener('focus',position);
-    button.addEventListener('click',position);
-    button.addEventListener('keydown',event=>{if(event.key==='Escape')button.classList.add('help-dismissed');});
-  });
 }
 
 const versionKeys=Object.keys(versionNotes);
@@ -56,7 +43,7 @@ function render() {
   } else {
   $('version-comparison').innerHTML=`<table class="version-table"><caption class="sr-only">Ordinary and timing accuracy of the same retrained models, plus an equally weighted two-test score</caption><thead><tr><th>Model</th><th>Ordinary<br><span>Accuracy</span></th><th>Timing<br><span>Accuracy</span></th><th>Two-test<br><span>Equal weight</span></th></tr></thead><tbody>${versionKeys.map(key=>{const score=key==='v2'?comparison?.models.beta2:key==='v4'?comparison?.models.sona:null;const empty=key==='v1'||key==='v3'?'Not tested':researchFailed?'Unavailable':'Loading…';return `<tr class="${key===selected?'selected-version':''}"><th scope="row">${modelName(key)}${key===selected?' <span class="sr-only">· Selected</span>':''}</th>${score?`<td>${percent(score.ordinary)}</td><td>${percent(score.timing)}</td><td><strong>${percent((score.ordinary+score.timing)/2)}</strong></td>`:`<td colspan="3">${empty}</td>`}</tr>`;}).join('')}</tbody></table>`;
   }
-  attachComparisonHelp();
+
   if(four){
     const results=four.results;
     const totals=versionKeys.map(key=>({key,score:(results[key].normal.mean+results[key].stealth.mean+results[key].timing.mean)/3}));

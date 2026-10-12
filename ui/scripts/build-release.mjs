@@ -27,7 +27,7 @@ export async function packageRelease(ui) {
     for(const row of unpackRows(manifest.columns,rows)){if(ids.has(row.flow_id))throw new Error('Duplicate raw flow.');ids.add(row.flow_id);total++;}
   }
   if(total!==manifest.row_count)throw new Error('Incomplete raw dataset.');
-  const common=classic(await read('data.mjs'))+'\nconst esc=escapeHTML;\n'+classic(await read('raw-data.mjs'))+'\n'+classic(await read('versions-data.mjs'))+'\n'+classic(await read('research-data.mjs'));
+  const common=classic(await read('mobile.mjs'))+'\n'+classic(await read('data.mjs'))+'\nconst esc=escapeHTML;\n'+classic(await read('raw-data.mjs'))+'\n'+classic(await read('versions-data.mjs'))+'\n'+classic(await read('research-data.mjs'));
   const css=await read('styles.css'),pages={};
   for(const [page,entry] of [['index.html','app.js'],['raw.html','raw.js'],['model.html','model.js'],['progression.html','versions.js']]){
     let source=classic(await read(entry));
@@ -43,7 +43,7 @@ export async function packageRelease(ui) {
   const payload=serialize({pages,resources});
   const runtime=`const bundle=JSON.parse(document.getElementById('release-data').textContent);window.releaseResources=bundle.resources;const frame=document.getElementById('workspace');window.releaseSearch='';window.releaseNavigate=function(target){if(!bundle.pages[target.split('?')[0]])return;location.hash=target;};window.releaseReset=function(){history.replaceState(null,'','#raw.html');};function render(){const target=location.hash.slice(1)||'index.html',page=target.split('?')[0];window.releaseSearch=target.includes('?')?'?'+target.split('?').slice(1).join('?'):'';frame.srcdoc=bundle.pages[page]||bundle.pages['index.html'];frame.title=page==='index.html'?'Sona overview':page==='raw.html'?'Sona raw data':page==='model.html'?'Sona model explained':'Sona model progression';}window.addEventListener('hashchange',render);render();`;
   new Script(runtime);
-  const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sona</title><style>html,body{margin:0;height:100%;background:#f4f5f7}iframe{display:block;border:0;width:100%;height:100dvh}</style></head><body><iframe id="workspace" title="Sona overview"></iframe><noscript>This interactive release requires JavaScript.</noscript><script type="application/json" id="release-data">${payload}</script><script>${runtime}</script></body></html>`;
+  const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sona</title><style>html,body{margin:0;height:100%;background:#f4f5f7}iframe{display:block;border:0;width:100%;height:100vh;height:100dvh}</style></head><body><iframe id="workspace" title="Sona overview"></iframe><noscript>This interactive release requires JavaScript.</noscript><script type="application/json" id="release-data">${payload}</script><script>${runtime}</script></body></html>`;
   return {html,pages,resources};
 }
 export async function buildRelease(ui, output) {

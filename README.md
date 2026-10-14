@@ -29,7 +29,9 @@ flowchart LR
 
 **Measurements supply the evidence.** Inputs describe connection duration, ports, packets, bytes, protocol, service, outcome, and timing. Labels, IP addresses, host identities, and generator bookkeeping stay out of the learned inputs.
 
-**Memory connects events.** Sona uses a gated recurrent unit, or **GRU**: a neural component that updates a compact summary as each connection is read. Its 32 memory values work together to retain useful context. That summary starts fresh for each session; it is not a permanent history of a host.
+**Neurons combine clues.** An artificial neuron is a small numerical calculator. It multiplies incoming values by learned **weights**, which control their influence, combines them, and applies a mathematical function to produce a response called an **activation**. Connected neurons pass those responses onward, letting the network learn combinations of clues rather than relying on one measurement.
+
+**Memory connects events.** Sona uses a gated recurrent unit, or **GRU**, with 32 memory values that form a compact session summary. For each new connection, its neurons combine the incoming measurements with that earlier summary. Learned controls called **gates** decide how much previous information to retain and how to mix in the new information. The updated memory feeds the next connection’s calculation, so earlier events can influence the final prediction. These values work together; no single neuron is assigned one attack type. Memory starts fresh for each session.
 
 **One network makes the decision.** After reading the session, an output layer produces scores for six categories. Softmax converts the scores into a distribution. The highest-scoring category supplies both the predicted behavior and whether the session is flagged. Every displayed flow in that session inherits this prediction.
 

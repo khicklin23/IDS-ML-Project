@@ -1,6 +1,6 @@
 # Sona technical knowledge
 
-Verified against the repository implementation and bundled artifacts on **2026-10-12**. This document is a technical orientation for an LLM or developer. Values below describe a saved snapshot, not guarantees about future runs. If source code or artifacts change, inspect them again before relying on the numbers.
+Verified against the repository implementation and bundled artifacts on **2026-10-13**. This document is a technical reference for developers and readers who want implementation details. Values below describe a saved snapshot, not guarantees about future runs. If source code or artifacts change, inspect them again before relying on the numbers.
 
 ## 1. Essential facts
 
@@ -8,7 +8,7 @@ Verified against the repository implementation and bundled artifacts on **2026-1
 - The current public detector is **one six-class, session-level GRU**, not two separately trained networks. Normal-versus-suspicious evaluation and family classification are two views of its output.
 - Traffic is generated in Python. It resembles flow-level telemetry, but is not packet capture, payload inspection, real malware execution, or a production network sensor.
 - The public dashboard is static HTML/CSS/JavaScript. It reads saved JSON. It does not run PyTorch, train, capture traffic, or perform live inference in the browser.
-- The public checkpoint behind Overview and the retrained timing-study candidates behind Model Progression are **different artifacts**. Better experimental results do not automatically replace the public model.
+- The public checkpoint behind Overview and the retrained timing-study candidates behind Sona Progression are **different artifacts**. Better experimental results do not automatically replace the public model.
 - Model inputs exclude labels, scenario names, addresses, host IDs, and run identifiers. Session IDs and event times organize sequences but are not direct feature columns.
 - Session construction is supplied by the synthetic generator. Reliable real-world session formation is an additional engineering problem, not an implemented capability demonstrated by these results.
 
@@ -250,13 +250,25 @@ For these experimental artifacts, always call `prepare(frame)` from `scan_genera
 
 `audit_scan_generalization.py` replays every candidate and threshold; `summarize_scan_generalization.py` requires passed auditing and exports all results plus per-cell validation false alarms. Local artifacts are `data/generated/mixed_scan_generalization_v1/`; the report remains an experimental binary-window contract, incompatible with the public six-category dashboard. All 119 backend tests passed; all three full audits passed 108 prediction replays and 324 operating-point checks, plus frozen implementation and public/prior artifact preservation hashes. Complete all-candidate tables and calibration-cell records are saved locally alongside the audit. See `docs/SCAN_GENERALIZATION_BENCHMARK.md` for protocol, complete interpretation and verification updates. Next work should isolate augmentation and relative-memory contributions and test unseen durations before any six-category integration or promotion.
 
+### Advanced candidate and independent evaluation
+
+The isolated `experiments/sona_candidate/` package compares causal relative timing, ordinary/mixed training, small and capacity-matched pooling, hierarchical memory, causal retrieval, and GRU capacity controls. Across three seeds it generated 5,043,301 fresh flows / 54,000 windows and trained 36 full models. Validation selected a relative-timing GRU40; hierarchical/retrieval designs did not establish an improvement. This remains a binary-window experiment, not a six-category public replacement. Optimized preprocessing reproduced exact features and was 4.77–5.83× faster in paired measurements; that is not an end-to-end model speed claim.
+
+`experiments/sona_evaluation/` supplies an independent, frozen suite with shifted traffic, memory controls, saved-checkpoint transfer and retrained counterparts. The primary three-seed sealed comparison judged GRU40 against retrained GRU32 **INSUFFICIENT EVIDENCE**: mean recall difference −0.15 percentage points, 95% interval [−0.49, +0.21]. A separate three-seed replication gave **FAIL**: −0.67 points [−0.96, −0.37]. Long-sparse false alarms reached 24.58% in the primary run versus 4.67% for GRU32. Both GRUs demonstrated memory, but GRU32 already solved the suite’s chain task; the candidate did not establish deeper reasoning or overall superiority.
+
+Retrained GRU32 ranks familiar mixed-window traffic better than the Beta counterparts (mean ROC AUC 0.997 versus 0.937/0.920). The public saved Sona checkpoint transfers poorly to that new window family; do not substitute retrained architectural results for delivered checkpoint capability. Beta voting thresholds interact with benign chain examples in validation and exaggerate their recall deficit at the primary operating point. Preserve that limitation rather than presenting their near-zero recall as a universal comparison.
+
+The independent efficiency reference workload measured candidate end-to-end latency at 46.78 ms versus retrained GRU32 at 42.11 ms and Beta 2 at 25.63 ms. All measurements flagged concurrent CPU load. The candidate is not universally faster. The completed candidate backend check recorded 164 passing tests; the candidate did not establish independent acceptance, and six-category promotion was not attempted. Full protocols, all outcomes, artifact contracts, and limitations: `docs/SONA_CANDIDATE.md` and `docs/SONA_EVALUATION.md`.
+
+No experimental checkpoint replaced Overview. Generated weights/predictions remain under ignored `data/generated/` paths. Future work must use fresh development and sealed cases, reliable per-condition false-alarm gates, and a separate six-category regression before promotion.
+
 ## 9. Static frontend
 
-Four pages: `index.html`, `model.html`, `progression.html`, and `raw.html`. Shared CSS is `styles.css`; page logic lives in `app.js`, `model.js`, `versions.js`, and `raw.js`. Contract/helpers are `data.mjs`, `raw-data.mjs`, `versions-data.mjs`, and `research-data.mjs`.
+Five pages: `index.html`, `model.html`, `progression.html`, `neurons.html`, and `raw.html`. Shared CSS is `styles.css`; page logic lives in `app.js`, `model.js`, `versions.js`, `neurons.js`, and `raw.js`. Contract/helpers are `data.mjs`, `raw-data.mjs`, `versions-data.mjs`, and `research-data.mjs`.
 
-Overview order: detection performance, classification/dataset summary, detection records, alerts/incidents. Investigation uses inline detail panels, with normal traffic and benign false positives distinguished from actual attacks. Model Explained uses an illustrative neural SVG and selectable stages, not measured neuron activations. Model Progression uses the matched candidate comparison. No public report import/export controls remain.
+Overview order: detection performance, classification/dataset summary, detection records, alerts/incidents. Investigation uses inline detail panels, with normal traffic and benign false positives distinguished from actual attacks. Sona explained uses an illustrative neural SVG and selectable stages, not measured neuron activations. Sona Progression uses the matched candidate comparison; Beta 1/2 share a row when their three means match, while their individual training descriptions remain inspectable. Neural networks explained uses a separate 2→3→2→2 teaching network with individually selectable neurons, editable inputs/connection weights, actual responses and class percentages. The short learning section explains backpropagation; no training controls or symbolic equations are exposed. Its math helper retains tested gradient routines, but the page uses only inference. No public report import/export controls remain.
 
-`mobile.mjs` installs delegated metric help for dynamically rendered cards: tap toggle, desktop hover, keyboard focus, Escape/outside-tap/scroll/resize dismissal, and viewport-aware positioning. CSS provides safe-area handling, phone navigation, coarse-pointer touch targets and 16px form text, swipeable tables/diagram, stacked panels, and landscape rules. Automated checks do not establish physical iPhone Safari appearance.
+`mobile.mjs` installs delegated metric help for dynamically rendered cards: tap toggle, desktop hover, keyboard focus, Escape/outside-tap/scroll/resize dismissal, and viewport-aware positioning. CSS provides safe-area handling, a two-column phone layout for the four workspace tabs plus a full-width dataset action, coarse-pointer touch targets and 16px form text, swipeable tables/diagram, stacked panels, and landscape rules. Automated checks do not establish physical iPhone Safari appearance.
 
 Raw data is stored as row arrays in numbered JSON chunks plus `raw-data/manifest.json` listing columns and chunks. The current bundle has 88 chunks and 87,505 records. The page loads listed chunks and searches the complete dataset, not only the current page. Default pagination is 100 rows. Report/manifest run, count, and generation provenance must agree.
 
@@ -296,7 +308,7 @@ Inspect the exporter and source summaries before using it. This does not promote
 
 Standalone release tooling is `ui/scripts/build-release.mjs`. An explicitly requested build validates data, embeds all five pages/scripts/styles and JSON including every raw chunk into `Download_Project_Here.html`, updates `CURRENT_RELEASE.txt`, and preserves older numbered snapshots. Subsequent builds refresh the same named download. Navigation uses a parent iframe and URL fragments; fetches resolve to embedded resources. Multi-file modules require HTTP, while the standalone file supports offline use with JavaScript enabled.
 
-**The current downloadable release is `Download_Project_Here.html`.** Build command, only when requested: `npm --prefix ui run build`. The current standalone file is about 20.7 MiB because it contains the full dataset.
+**The current downloadable release is `Download_Project_Here.html`.** Build command, only when requested: `npm --prefix ui run build`. The current standalone file is about 20.8 MiB because it contains the full dataset.
 
 Multi-file hosting configuration lives in `ui/vercel.json`: static files, no server functions, no production ML process. The single-file release uses inline scripts and styles; hosting policy must permit those rather than blindly applying the multi-file site's external-script restrictions. No build or deployment is implied by editing docs.
 
@@ -311,3 +323,9 @@ The static dashboard has no automatic refresh from backend training. Every displ
 Source and current artifact contents outrank old prose. Several older guides describe the earlier two-network workbench and historical tests. This file and the root README distinguish the current public path from those still-supported workflows. Do not delete older backend modules simply because they are not the public deployment path.
 
 Local environments, generated backend artifacts, credentials, agent coordination files, and local maintenance tools are excluded by `.gitignore`. Public technical documentation should not depend on local agent notes to make sense. Before changing code, inspect repository instructions if present, relevant modules, artifact metadata, and working-tree changes. Never rebuild releases, retrain models, install dependencies, commit, push, or deploy merely because this reference lists the commands.
+
+## 12. Source publication boundaries
+
+Python implementation and tests under `src/`, `tests/`, and `ui/scripts/` are tracked source files, not excluded by `.gitignore`. At this documentation update, all 114 project Python files are in the commit published to GitHub’s `main`. The remote is `https://github.com/khicklin23/Sona.git`. Counts will change as source is added.
+
+Ignored local material includes `.venv/`, Python caches, `data/generated/`, `artifacts/`, secrets, Git-kb/agent directories, `AGENTS.md`, and local coordination documents. A clone includes source and bundled static UI data; it does not include the training environment or saved backend weights/datasets. The standalone download embeds the five dashboard pages and full showcase raw data, so it can be viewed without those backend artifacts.

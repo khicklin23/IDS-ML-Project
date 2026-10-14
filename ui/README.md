@@ -13,7 +13,7 @@ Open http://127.0.0.1:4173. The development server serves files only. The deploy
 
 ## Review workflow
 
-Navigation opens four separate pages: Overview, Raw data, Model explained, and Model progression. Overview orders detection performance, detection records, classification/dataset summary, then alerts and incidents. The explanation page includes layer exploration, saved training settings, scenario counts, and an adjustable teaching neuron; illustrative visuals are distinguished from measured results.
+Navigation opens five pages: Overview, Raw data, Sona explained, Sona Progression, and Neural networks explained. Overview orders detection performance, detection records, classification/dataset summary, then alerts and incidents. The explanation page includes layer exploration, saved training settings, scenario counts, and an adjustable teaching neuron; illustrative visuals are distinguished from measured results.
 
 - Normal traffic is separated from attack families. The detection-results summary shows benign flows correctly left unflagged, detections, false positives and misses; these are held-out flow counts, not alert/session counts. Alert category filters distinguish attack-related records and benign false alarms using ground truth.
 - Overview prioritizes alerts and incidents. Open a row to investigate inline beside the table; no modal dialog. Incidents use recorded backend group IDs, not invented attack-chain attribution.
@@ -41,7 +41,7 @@ npm run sync-report -- /absolute/path/report.json
 ../.venv/bin/python scripts/build-raw.py /absolute/path/dataset
 ```
 
-The exporter requires the project's existing pandas/Parquet environment. It checks the dataset manifest, run ID and row count against the report, then writes static row-array chunks and a column manifest to raw-data/. The browser checks run/count/dataset generation time before loading them. Refresh both together. The default report source is now `data/generated/showcase_v4/report.json` (report 1.1.0, dataset schema 1.2.0). Overview and Model explained now use the v4 session model. Both detection and family views come from the same network; every flow inherits its session prediction. The raw export retains two source run IDs and uses the report time when the combined dataset manifest has no generation time. Only listed chunks are loaded; outdated unused chunks from a smaller refreshed run can be removed during packaging.
+The exporter requires the project's existing pandas/Parquet environment. It checks the dataset manifest, run ID and row count against the report, then writes static row-array chunks and a column manifest to raw-data/. The browser checks run/count/dataset generation time before loading them. Refresh both together. The default report source is now `data/generated/showcase_v4/report.json` (report 1.1.0, dataset schema 1.2.0). Overview and Sona explained now use the v4 session model. Both detection and family views come from the same network; every flow inherits its session prediction. The raw export retains two source run IDs and uses the report time when the combined dataset manifest has no generation time. Only listed chunks are loaded; outdated unused chunks from a smaller refreshed run can be removed during packaging.
 
 ## Vercel
 
@@ -53,7 +53,7 @@ Use Root Directory ui, framework Other, no build command, and output directory d
 
 ## Version comparison
 
-Model progression (`progression.html`) defaults to v4 and lets readers inspect v1/v2/v3/v4. `versions.json` is a static copy of `data/generated/model_versions/comparison.json`. It compares attack-family guesses on the same test sessions. The version selector does not change Overview’s separate earlier report, its alerts, raw-data links, or Model explained page. The comparison is a separate experiment from Overview’s v4 detection export. Its session-level scores should not be mixed with Overview’s flow-counted metrics.
+Sona Progression (`progression.html`) defaults to v4 and lets readers inspect v1/v2/v3/v4. `versions.json` is a static copy of `data/generated/model_versions/comparison.json`. It compares attack-family guesses on the same test sessions. The version selector does not change Overview’s separate earlier report, its alerts, raw-data links, or Sona explained page. The comparison is a separate experiment from Overview’s v4 detection export. Its session-level scores should not be mixed with Overview’s flow-counted metrics.
 
 To refresh this comparison only, copy the backend comparison to `ui/versions.json` from the project root, then run the UI checks. Keep the full JSON shape; the page checks the schema, test counts, and class matrix totals. The scores are balanced class scores, not attack detection rates.
 
@@ -63,12 +63,18 @@ Static CSS/JS and browser module imports carry a release query (`?v=v4-20261011-
 
 ## Standalone public release
 
-From the project root, run `npm --prefix ui run build` (or `npm run build` inside ui). The first build writes `Release_1.0.html` in the project root. Each later build finds the highest existing release number and increments it: `Release_1.1.html`, `Release_1.2.html`, and so on. A successful build writes `CURRENT_RELEASE.txt` with the new filename, then deletes older `Release_1.x.html` files. Only the newest release is retained.
+From the project root, run `npm --prefix ui run build` (or `npm run build` inside ui). The build writes `Download_Project_Here.html` and updates `CURRENT_RELEASE.txt`. Later builds refresh that clearly named download. Earlier numbered snapshots are preserved.
 
-Each file embeds all four pages, styles, scripts, current report/comparison, experimental summary, and every raw flow chunk. It can open directly as a local HTML file or be hosted as a single static file. Page navigation uses the URL fragment; session links remain inside the release. No runtime server, dependency files, or network requests are required. JavaScript must be enabled. The full raw dataset makes the release larger than a typical webpage.
+Each file embeds all five pages, styles, scripts, current report/comparison, experimental summary, and every raw flow chunk. It can open directly as a local HTML file or be hosted as a single static file. Page navigation uses the URL fragment; session links remain inside the release. No runtime server, dependency files, or network requests are required. JavaScript must be enabled. The full raw dataset makes the release larger than a typical webpage.
 
 Refresh report and raw exports before building. The builder refuses mismatched data and syntax-checks packaged scripts. UI checks exercise all packaged views with embedded fetch responses; actual browser layout and file-opening behavior still need browser review. The editable multi-file ui directory remains the source for future releases.
 
 After a completed matched study, refresh only the experimental comparison with `.venv/bin/python ui/scripts/sync-research.py data/generated/sona_pace_noise_v1`. This reads the audited all-seed summary, preserves the earlier study, and leaves Overview/report data unchanged. Then run the UI checks and build.
 
 To publish the audited four-model comparison, add `--four-model-summary data/generated/four_model_timing_v1/summary.json` to the research sync command. The top module shows all four retrained counterparts on the same ordinary, slowed-down and timing test sessions; its summary averages the three categories equally. Original public weights and scores remain separate.
+
+## Neural networks explained
+
+Open `neurons.html` for a beginner walkthrough. The 2 → 3 → 2 → 2 teaching network shows separate neurons with plain-language input labels, editable connection weights and actual live responses. Next follows the signal through the layers; final scores become class percentages. The brief learning section explains loss, backpropagation and gradients without training controls or symbolic equations. No saved Sona artifacts are loaded or changed. Input tabs distinguish numerical traffic features from illustrative token IDs/embeddings; output tabs distinguish Sona session classification from Transformer language generation. Technical source links are provided on the page.
+
+`npm run check` covers mathematical correctness, deterministic inference, interaction/reset, navigation and offline packaging. The educational math module retains independently verified gradient routines; the beginner page exposes only inference. `neurons.html` is included in future standalone releases; adding or editing this page does not generate a new release.

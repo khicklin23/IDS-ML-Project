@@ -2,15 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Script,createContext} from 'node:vm';
 import {fileURLToPath} from 'node:url';
-import {packageRelease,nextRelease,buildRelease} from '../scripts/build-release.mjs';
+import {packageRelease,DOWNLOAD_FILENAME,buildRelease} from '../scripts/build-release.mjs';
 const bundle=await packageRelease(fileURLToPath(new URL('..',import.meta.url)));
-test('release numbering increments without overwriting old artifacts',()=>{
- assert.equal(nextRelease([]),'Release_1.0.html');
- assert.equal(nextRelease(['Release_1.0.html']),'Release_1.1.html');
- assert.equal(nextRelease(['Release_1.9.html','Release_1.2.html','other.html']),'Release_1.10.html');
-});
+test('download filename is a clear stable entry point',()=>{assert.equal(DOWNLOAD_FILENAME,'Download_Project_Here.html');});
 test('standalone release embeds all pages and exactly the current raw dataset',()=>{
- assert.deepEqual(Object.keys(bundle.pages),['index.html','raw.html','model.html','progression.html']);
+ assert.deepEqual(Object.keys(bundle.pages),['index.html','raw.html','model.html','progression.html','neurons.html']);
  const manifest=bundle.resources['raw-data/manifest.json'];
  assert.equal(manifest.chunks.reduce((n,name)=>n+bundle.resources['raw-data/'+name].length,0),87505);
  assert.equal(bundle.resources['report.json'].detector.model_version,'v4');
@@ -36,9 +32,10 @@ test('all packaged pages render using embedded data without network requests',as
   assert.doesNotMatch(page,/\u2014|&mdash;|&#8212;/,name);
   if(name==='index.html'){assert.equal(get('dashboard').hidden,false);assert.match(get('metrics').innerHTML,/87,505/);}
   if(name==='raw.html'){assert.equal(get('raw-status').hidden,true);assert.match(get('raw-summary').textContent,/session run-7::port_scan-00000/);}
+  if(name==='neurons.html'){assert.match(get('neuron-network').innerHTML,/First hidden layer/);assert.match(get('neuron-calculation').innerHTML,/Failed connections/);}
   if(name==='model.html')assert.match(get('model-network').innerHTML,/Sona neural network/);
   if(name==='progression.html'){assert.equal(get('versions-content').hidden,false);assert.match(get('version-detail').innerHTML,/<h3>Sona/);assert.match(get('version-comparison').innerHTML,/99.4%/);assert.doesNotMatch(page,/research-content|All four models: extended tests/);}
  }
 });
 
-test('new build flags current release and deletes older release HTML only',async()=>{const {mkdtemp,writeFile,readFile,readdir,rm}=await import('node:fs/promises');const {tmpdir}=await import('node:os');const {join}=await import('node:path');const output=await mkdtemp(join(tmpdir(),'sona-release-'));try{await writeFile(join(output,'Release_1.4.html'),'old');await writeFile(join(output,'notes.txt'),'keep');const result=await buildRelease(fileURLToPath(new URL('..',import.meta.url)),output);assert.equal(result.filename,'Release_1.5.html');assert.equal(await readFile(join(output,'CURRENT_RELEASE.txt'),'utf8'),'Release_1.5.html\n');assert.deepEqual((await readdir(output)).sort(),['CURRENT_RELEASE.txt','Release_1.5.html','notes.txt']);}finally{await rm(output,{recursive:true,force:true});}});
+test('new build refreshes the named download and preserves older snapshots',async()=>{const {mkdtemp,writeFile,readFile,readdir,rm}=await import('node:fs/promises');const {tmpdir}=await import('node:os');const {join}=await import('node:path');const output=await mkdtemp(join(tmpdir(),'sona-release-'));try{await writeFile(join(output,'Release_1.4.html'),'old');await writeFile(join(output,'notes.txt'),'keep');const result=await buildRelease(fileURLToPath(new URL('..',import.meta.url)),output);assert.equal(result.filename,'Download_Project_Here.html');assert.equal(await readFile(join(output,'CURRENT_RELEASE.txt'),'utf8'),'Download_Project_Here.html\n');assert.deepEqual((await readdir(output)).sort(),['CURRENT_RELEASE.txt','Download_Project_Here.html','Release_1.4.html','notes.txt']);}finally{await rm(output,{recursive:true,force:true});}});

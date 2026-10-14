@@ -1,124 +1,128 @@
 <p align="center">
-  <img src="docs/assets/readme-banner.svg" alt="IDS Monitor: synthetic telemetry, two neural models, and an analyst workspace for reviewing detection evidence." width="1200">
+  <img src="docs/assets/readme-banner.svg" alt="Sona: synthetic network telemetry, a session-memory neural model, and an analyst dashboard." width="1200">
 </p>
 
+<p align="center"><strong>Learned detection · Session memory · Inspectable evidence</strong></p>
 <p align="center">
-  <strong>Learned detection · Reproducible experiments · Transparent results</strong>
-</p>
-
-<p align="center">
-  <a href="#explore-the-dashboard">Explore</a> ·
-  <a href="#how-it-learns">How it learns</a> ·
-  <a href="#what-the-models-decide">Model decisions</a> ·
-  <a href="#model-versions-v1-v2-v3-v4">Model versions</a> ·
-  <a href="#project-map">Project map</a>
+  <a href="#explore">Dashboard</a> ·
+  <a href="#how-sona-learns">How it learns</a> ·
+  <a href="#why-session-memory">Sona Progression</a> ·
+  <a href="KNOWLEDGE.md">Technical reference</a>
 </p>
 
 ---
 
-**IDS-ML-Project** is an educational intrusion detection simulation. Python generates network activity, small PyTorch networks learn its behavioral patterns, and a static analyst interface makes the results inspectable.
+**Sona** is an educational intrusion detection model built with Python and PyTorch. It reads related network connections in sequence to distinguish normal activity from five simulated attack types. A static dashboard presents the saved predictions, measurements, and investigation records.
 
-The goal is to evaluate learned combinations of signals alongside a simple rule baseline, showing detections, normal traffic, false alarms, and missed attacks.
+The traffic is synthetic. The project studies learned detection behavior; it does not capture live packets, block attacks, or establish real-world detection accuracy.
 
-## Explore the dashboard
+## Explore
+
+**[Download Project Here](Download_Project_Here.html)** — download the HTML file, then open it in your browser. It includes all five dashboard pages and the complete showcase dataset; no installation is needed. On GitHub, open the file and choose **Download raw file**.
+
 
 ```bash
 cd ui
 npm run dev
 ```
 
-Open **[localhost:4173](http://localhost:4173)**. Requires Node.js and Python 3; no UI dependency installation or model server is needed.
+Open **[localhost:4173](http://localhost:4173)**. Preview requires Node.js and Python 3, with no UI dependency installation or model server.
 
-| Workspace | What you can inspect |
+| Page | What it shows |
 | --- | --- |
-| **Alerts & incidents** | Inline investigations, model scores, predicted families, and session links |
-| **Raw data** | The complete bundled dataset, paginated with search, filters, and sortable columns |
-| **Model evaluation** | Neural-versus-rule performance, per-class results, and classification errors |
+| **Overview** | Detection performance, classification results, dataset summary, alerts, and incidents |
+| **Sona explained** | An interactive neural diagram and plain explanations of inputs, memory, and training |
+| **Sona Progression** | What changed between Beta 1, Beta 2, Beta 3, and Sona, with matched experimental results |
+| **Neural networks explained** | A beginner walkthrough with individual neurons, editable connections, and a simple explanation of learning |
+| **Browse full dataset** | All 87,505 bundled connection records, with search, filters, sorting, and pagination |
 
-The interface distinguishes **generated ground truth**, **model predictions**, and **rule comparisons**. It reviews precomputed results; it does not train or capture traffic in the browser.
+The interface separates **generated ground truth** from **model predictions**. It supports phone layouts and touch explanations. It displays precomputed results; training does not happen in the browser.
 
-## How it learns
+## How Sona learns
 
 ```mermaid
 flowchart LR
-    A[Seeded synthetic traffic] --> B[Session-grouped splits]
-    B --> C[Training-only preprocessing]
-    C --> D[Binary neural detector]
-    C --> E[Multiclass neural classifier]
-    D --> F[Held-out evaluation]
-    E --> F
-    F --> G[Static report and analyst UI]
+    A[Generate labeled synthetic connections] --> B[Split whole sessions]
+    B --> C[Fit preprocessing on training data]
+    C --> D[Read connections in order with a GRU]
+    D --> E[Predict normal or one of five attack types]
+    E --> F[Evaluate held-out sessions]
+    F --> G[Save report and investigation records]
+    G --> H[Static dashboard]
 ```
 
-**Examples come with answers.** The generator creates benign activity, port scans, authentication brute force, beaconing, service floods, and outbound-transfer scenarios. Labels supervise training; they never enter the model as input features.
+**Examples have known answers.** Python generates normal traffic, port scans, authentication attacks, beaconing, service floods, and outbound transfers. Those categories supervise training but never enter the network as input features.
 
-**Behavior becomes numbers.** Durations, ports, packet/byte counts, protocol, service, outcome, and supported timing features form the input. Numeric fields are standardized; categories are encoded. IP addresses, host IDs, and generator bookkeeping are excluded.
+**Connections become numbers.** The inputs describe duration, ports, packets, bytes, protocol, service, outcome, and the gap since the previous connection. Numeric fields are standardized and categories are encoded. IP addresses, host identities, and generator bookkeeping are excluded from model inputs.
 
-**Prediction improves through feedback.** Each network uses two hidden layers, 32 and 16 neurons by default. Training compares predictions with labels, then backpropagation and Adam adjust its connections. Dropout and validation-based early stopping help limit overfitting.
+**Memory adds context.** A GRU, or *gated recurrent unit*, updates a small internal summary as it reads related connections. Sona uses one GRU layer with 32 memory units, followed by a six-category output layer. This gives it a view of both individual measurements and their sequence.
 
-| Two kinds of weights | Their job |
-| --- | --- |
-| **Learned connection weights** | Discover combinations of features that distinguish behaviors |
-| **Class weights** | Give underrepresented classes more influence in the training loss |
+**Training adjusts weights.** An error score compares each prediction with the known category. Backpropagation calculates weight adjustments, and the Adam optimizer applies them. Class weights give less common training categories more influence. Validation loss selects the saved checkpoint; separate test sessions measure its performance.
 
-The binary loss balances suspicious examples against normal examples. Multiclass weights use inverse class frequency. **Rarity changes training emphasis, not alert severity.**
+### One network, two views of its answer
 
-## What the models decide
+Current Sona predicts a single category for each complete session. If the winning category is `benign`, the session is left unflagged. Any attack category flags it and supplies the predicted attack type.
 
-| Model | Question | Output |
-| --- | --- | --- |
-| **Binary detector** | Does this flow look suspicious? | A score compared with a threshold, normally `0.5` |
-| **Multiclass classifier** | Which learned behavior does it resemble? | Benign or one of five attack families, with a softmax confidence score |
+Its suspiciousness score is `1 − P(benign)`. That score describes the output; the current alert decision comes from the winning category, rather than a separate binary detector. Each displayed flow inherits its session's prediction.
 
-These are **separately trained models**, so their answers can disagree. The binary detector triggers alerts; the multiclass model supplies a family prediction. Session aggregation, confidence-based severity, and incident grouping remain deterministic backend operations. Rules are a comparison baseline, not the primary detector.
+Earlier code also supports two separately trained connection-level networks, one binary and one multiclass. **That earlier design is not the current Sona dashboard pipeline.** Alert aggregation, confidence-based severity, and incident grouping remain deterministic processing around the learned prediction.
 
-Evaluation separates whole sessions across training, validation, and testing, with scenario-aware allocation where enough sessions exist. Precision, recall, F1, false-positive rates, and confusion matrices expose both successes and mistakes. Macro F1 gives each class equal importance.
+## Why session memory?
 
-> **Research boundary:** synthetic performance does not establish production IDS accuracy. Confidence is not a guarantee, and these models classify generated behavior, not specific software vulnerabilities. Robustness, unknown-class handling, calibration, and sequence modeling are ongoing work.
+| Display name | Internal key | Model view | Ordinary attack training |
+| --- | --- | --- | --- |
+| **Beta 1** | `v1` | One connection at a time | Standard variants |
+| **Beta 2** | `v2` | One connection at a time | Standard and lower-rate variants |
+| **Beta 3** | `v3` | Ordered connections with GRU memory | Standard variants |
+| **Sona** | `v4` | Ordered connections with GRU memory | Standard and lower-rate variants |
 
-## Model versions (v1, v2, v3, v4)
+Lower-rate attacks use fewer connections, longer gaps, or lower throughput. They can still contain recognizable clues within individual connections. Memory is most useful when the **order of events** carries information that individual measurements cannot reveal.
 
-Each training attempt is saved separately so changes can be measured against earlier results. There are four versions:
+The progression page compares **retrained counterparts** on the same test sessions across three seeds. All received shared timing practice. These are experimental candidates, separate from the checkpoint behind Overview.
 
-| Version | What it is | What changed from the last one |
-| --- | --- | --- |
-| **v1** | The starting point. | Initial baseline |
-| **v2** | The same model design as v1. | Trained on a mix of normal attacks *and* "stealth mode" versions of them, the same attacks, just slowed down and spread out to avoid standing out, the way a real attacker might try to sneak past detection. |
-| **v3** | A different kind of model. | Instead of looking at one network connection ("flow") at a time, it looks at a whole group of related connections in order, like watching a short clip instead of a single snapshot. It uses a small **GRU** (a type of neural network built to remember what it saw a moment ago, so it can notice patterns *over time*, not just in one instant) to do this. Trained the same way as v1, no stealth examples. |
-| **v4** | Same "watch a clip" model as v3. | Combined with v2's idea: also trained on the slowed-down, sneaky examples. Two separate improvements, stacked together. |
+| Candidate | Ordinary accuracy | Lower-rate accuracy | Order-dependent timing accuracy | Three-test mean |
+| --- | ---: | ---: | ---: | ---: |
+| Beta 1 | 100.00% | 100.00% | 50.00% | 83.33% |
+| Beta 2 | 100.00% | 100.00% | 50.00% | 83.33% |
+| Beta 3 | 100.00% | 91.67% | 99.19% | 96.95% |
+| Sona candidate | 100.00% | 99.24% | 99.00% | **99.41%** |
 
-**Results from testing all four against sneaky, slowed-down attacks** (measured as **macro F1**: a balanced score, out of 100%, that gives every attack type equal weight so a model can't hide a weak spot behind a strong one):
+The timing test pairs sessions with the same measurements in different orders. Individual-connection voting gives both members the same answer, producing 50% accuracy. Memory models can distinguish the sequences. Sona has the strongest equal-weight mean across these three categories, while the simpler models retain a small advantage on the lower-rate test. It does not win every test.
 
-| | v1 | v2 | v3 | v4 |
-| --- | --- | --- | --- | --- |
-| Catches normal-pace attacks | 100% | 100% | 100% | 99.1% |
-| Catches sneaky, slowed-down attacks | 56.2% | **100%** | 59.9% | **100%** |
+The three-test mean gives each category one-third of the score; it is not pooled accuracy or a production IDS rating. See the [comparison protocol](docs/FOUR_MODEL_COMPARISON.md) for the test sizes, training differences, and limits.
 
-- **v1** struggled with the sneaky versions, barely better than a coin flip on some of them, even though it was very good at the normal-pace versions of the same attacks.
-- **v2** (trained on some sneaky examples) caught essentially all of them. Giving the model better examples to learn from fixed most of the problem.
-- **v3** (same "watch a clip" idea, but never trained on a single sneaky example) did only a little better than v1, not the "noticeably better" result initially reported. That first measurement had a bug: the model was only being shown the first 50 connections of each group, and real groups often run much longer, so it was missing most of exactly the longer, sneakier sessions it needed to see. Once that was fixed, seeing a sequence of connections instead of one at a time turned out to give only a small amount of natural resistance to the pacing trick on its own.
-- **v4** stacks both fixes, the "watch a clip" model design *and* training on sneaky examples, and gets every single sneaky, slowed-down attack type right, including the one (slow, spaced-out "beaconing" traffic, where an already-infected machine checks in with an attacker every so often) that every earlier version struggled with most. On normal-pace traffic it misses a small handful (99.1%, not literally every one), a second bug was found and fixed while checking this (two independently-generated batches of traffic could accidentally reuse the same group ID, blurring two unrelated sessions together when combined for training); the corrected number is this 99.1%, not the flat 100% first reported.
+## Saved Overview results
 
-The takeaway: there are two different ways to make this kind of model better, give it better examples to learn from (v2), or give it a better "view" of the data (v3), and they stack. Neither one alone fully solved the hardest attack type; both together (v4) did. All four versions are saved on disk separately so they can be compared again later. (One honest caveat: these scores are from held-out test examples generated the same way as training data, not a truly different kind of network traffic, so "perfect" here means "perfect on this test," not "will never miss anything.")
+The public snapshot contains **87,505 flows**, including **12,929 held-out test flows**. Its session predictions are counted once per constituent flow in the displayed metrics.
+
+| Metric | Saved result | Meaning |
+| --- | ---: | --- |
+| Detection precision | 99.24% | Of the flagged flows, how many belong to simulated attacks |
+| Detection recall | 100.00% | Of the attack flows, how many were flagged |
+| Detection F1 | 99.62% | A balance between precision and recall |
+| False-positive rate | 2.49% | Of the normal flows, how many were incorrectly flagged |
+| Classification macro F1 | 99.55% | Average F1 across all six categories, giving each equal importance |
+
+These results belong to the saved Overview checkpoint, not the timing candidates above. Long sessions contribute more flows, so these percentages are not independent per-connection predictions or session accuracy. High synthetic scores and softmax confidence do not guarantee performance on unfamiliar real traffic.
 
 ## Project map
 
 | Location | Responsibility |
 | --- | --- |
-| [`src/ids_ml/data/`](src/ids_ml/data/) | Scenario generation, schema, provenance, and dataset splitting |
-| [`features.py`](src/ids_ml/features.py) · [`models/`](src/ids_ml/models/) | Preprocessing, neural architectures, training, and evaluation |
-| [`versions.py`](src/ids_ml/versions.py) | Trains and compares v1/v2/v3/v4 side by side on the same held-out data |
-| [`inference.py`](src/ids_ml/inference.py) · [`alerts.py`](src/ids_ml/alerts.py) | Model scoring and alert/incident records |
-| [`report.py`](src/ids_ml/report.py) · [`ui/`](ui/) | Precomputed report contract and static presentation |
+| [`src/ids_ml/data/`](src/ids_ml/data/) | Seeded generation, schema, provenance, and session splits |
+| [`features.py`](src/ids_ml/features.py) | Training-only preprocessing and timing transforms |
+| [`models/`](src/ids_ml/models/) | Connection and sequence architectures, training, and evaluation |
+| [`report.py`](src/ids_ml/report.py) | Current Sona export and earlier two-model report builder |
+| [`alerts.py`](src/ids_ml/alerts.py) | SQLite alert storage and deterministic incident grouping |
+| [`experiments/`](src/ids_ml/experiments/) | Timing, pace, noise, and matched-model studies |
+| [`ui/`](ui/) | Static pages, bundled data, checks, and standalone release tooling |
+| [`KNOWLEDGE.md`](KNOWLEDGE.md) | Detailed technical reference and artifact boundaries |
 
-Backend checks use the project's configured environment:
+Backend checks use the configured Python environment:
 
 ```bash
 .venv/bin/python -m pytest
+npm --prefix ui run check
 ```
 
-Dashboard checks: `cd ui && npm run check`. See the [UI guide](ui/README.md) for data refresh and Vercel setup. Bundled results are snapshots; backend changes do not automatically update the dashboard.
-
----
-
-[How training works](docs/HOW_TRAINING_WORKS.md)
+Backend changes do not automatically refresh the dashboard. Report and raw-data exports must match. See [KNOWLEDGE.md](KNOWLEDGE.md#refresh-and-release-workflow) for the current workflow. `CURRENT_RELEASE.txt` identifies the existing standalone HTML; a new build is an explicit separate step.

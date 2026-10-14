@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 4173 --bind 127.0.0.1",
-    "check": "node --check mobile.mjs && node --check app.js && node --check raw.js && node --check model.js && node --check versions.js && node --test checks/*.test.mjs",
+    "check": "node --check mobile.mjs && node --check app.js && node --check raw.js && node --check model.js && node --check versions.js && node --check neurons.js && node --check neuron-math.mjs && node --test checks/*.test.mjs",
     "sync-report": "node scripts/sync-report.mjs",
     "sync-raw": "../.venv/bin/python scripts/build-raw.py",
     "build": "node scripts/build-release.mjs"

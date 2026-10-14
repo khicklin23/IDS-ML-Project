@@ -14,7 +14,7 @@ test('matched experimental comparison stays available without extra research pan
  assert.equal(get('research-status').hidden,true);
  assert.match(get('version-comparison').innerHTML,/99.0%/);
  assert.match(get('version-comparison').innerHTML,/50.0%/);
- assert.match(get('version-detail').innerHTML,/separately trained Sona counterpart/);
+ assert.match(get('version-detail').innerHTML,/Overview uses a separately trained Sona checkpoint/);
  const html=readFileSync(new URL('../progression.html',import.meta.url),'utf8');
  assert.doesNotMatch(html,/research-heading|research-content|Latest timing comparison/);
  const source=readFileSync(new URL('../versions.js',import.meta.url),'utf8');
@@ -44,16 +44,24 @@ test('comparison scores validate every model and reject duplicate columns',()=>{
 test('original progression leads with matched scores and preserved historical evidence',()=>{
  const html=readFileSync(new URL('../progression.html',import.meta.url),'utf8');
  assert.ok(html.includes('id="version-heading"'));
- assert.match(html,/goal was to recognize more kinds of behavior, not to run faster/);
+ assert.match(html,/This measures recognition, not running speed/);
+ assert.match(html,/Why give the model memory/);
+ assert.match(get('memory-value').textContent,/Sona combines it with broader attack training/);
+ assert.match(html,/What changed, and why/);
+ assert.doesNotMatch(html,/test-guide|The next step:/);
+ assert.match(html,/not a real-world detection rating/);
  assert.match(get('version-comparison').innerHTML,/50.0%/);
  assert.match(get('version-comparison').innerHTML,/99.0%/);
  if(research.four_model_comparison){
   assert.doesNotMatch(get('version-comparison').innerHTML,/Not tested/);
-  assert.match(get('version-comparison').innerHTML,/Slowed-down/);
-  assert.match(get('version-findings').textContent,/Adding memory/);
+  assert.match(get('version-comparison').innerHTML,/Lower-rate/);
+  assert.match(get('version-comparison').innerHTML,/Beta 1 &amp; 2/);
+  assert.equal((get('version-comparison').innerHTML.match(/<th scope="row">/g)||[]).length,3);
+  assert.match(get('version-comparison').innerHTML,/Sequence timing/);
+  assert.match(get('version-findings').textContent,/Memory makes a new kind of pattern visible/);
   assert.match(get('version-findings').textContent,/91.7%/);
   assert.match(get('version-findings').textContent,/99.4%/);
-  assert.match(get('version-findings').textContent,/Beta 3 is slightly ahead on timing alone/);
+  assert.match(get('version-findings').textContent,/Beta 3 is slightly ahead on event order/);
   for(const key of ['v1','v2','v3','v4']){
    const scores=research.four_model_comparison.results[key];
    const value=((scores.normal.mean+scores.stealth.mean+scores.timing.mean)/3*100).toFixed(1)+'%';
@@ -97,9 +105,10 @@ test('comparison headings expose distinct hover and keyboard explanations',()=>{
   assert.ok(html.includes(`id="comparison-help-${key}"`));
  }
  assert.equal((html.match(/role="tooltip"/g)||[]).length,4);
- assert.match(html,/carried out more slowly or spread over time/);
- assert.match(html,/recognition of the sequence, not execution speed/);
- assert.match(html,/divided by three/);
+ assert.match(html,/fewer connections, longer gaps, or lower throughput/);
+ assert.match(html,/same connection measurements in different sequences/);
+ assert.match(html,/individual-connection voting misses/);
+ assert.match(html,/divide by three/);
  assert.match(html,/regardless of its number of sessions/);
 });
 

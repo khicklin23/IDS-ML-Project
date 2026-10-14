@@ -155,3 +155,49 @@
 
 /* Four learning/workspace tabs plus the dataset action on phones. */
 @media(max-width:700px){.topbar nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}.topbar nav>a{min-height:44px}.topbar nav .nav-raw.primary{grid-column:1/-1}html{scroll-padding-top:220px}.neuron-page input[type=range]{min-height:44px}}
+
+/* Phone refinements: fit small tables, guide exploration of larger diagrams. */
+.matrix-short-label,.scroll-guide{display:none}
+@media(max-width:700px){
+  html{scroll-padding-top:16px}
+  .topbar{position:relative;top:auto;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:8px}
+  .brand{min-height:34px}.topbar nav{margin-top:0;gap:2px 6px}.topbar nav>a{padding:6px 4px;font-size:11px}
+  .detail-panel{scroll-margin-top:16px}
+  .matrix{min-width:0;width:100%;border-spacing:2px;font-size:10px}
+  .matrix th{font-size:9px;overflow-wrap:anywhere;padding:4px 0}.matrix th:first-child{width:48px}
+  .matrix td{font-size:10px;padding:5px 0;height:38px}
+  .matrix-full-label{display:none}.matrix-short-label{display:inline}
+  .version-table{min-width:0;width:100%;table-layout:fixed;font-size:11px;text-align:center}
+  .version-table th,.version-table td{padding:9px 3px;white-space:normal;overflow-wrap:anywhere}
+  .version-table th:first-child,.version-table td:first-child{position:static;width:54px;padding-left:3px;box-shadow:none;text-align:left}
+  .version-table thead th{font-size:10px}.version-table tbody td{white-space:nowrap}
+  .version-table .comparison-label{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;line-height:1.4}
+  .version-table .comparison-info{width:18px;height:18px;flex-basis:18px}
+  .network-diagram{min-width:620px}.network-diagram .layer-controls button{font-size:11px;padding:8px}
+  .network-scroll,.neuron-scroll,.table-wrap{scrollbar-width:thin;scrollbar-color:#7c9fb8 #e8eef3;overscroll-behavior-x:contain}
+  .network-scroll::-webkit-scrollbar,.neuron-scroll::-webkit-scrollbar,.table-wrap::-webkit-scrollbar{height:8px}
+  .network-scroll::-webkit-scrollbar-thumb,.neuron-scroll::-webkit-scrollbar-thumb,.table-wrap::-webkit-scrollbar-thumb{background:#7c9fb8;border-radius:5px}
+  .scroll-guide:not([hidden]){display:flex;align-items:center;gap:12px;padding:4px 12px;border-top:1px solid #dce7ee;background:#f3f7fa}
+  .scroll-guide label{font-size:10px;color:#466b85;white-space:nowrap}.scroll-guide input[type=range]{width:100%;min-width:40px;min-height:44px;margin:0;padding:0;accent-color:#4b85a9;flex:1}
+  .encoding-visual,.destination-visual{display:grid;grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr);gap:7px;margin:14px 0 10px}
+  .encoding-chip,.destination-visual>span{font-size:11px;line-height:1.4;padding:9px 8px;text-align:center;min-width:0}
+  .encoding-visual>b,.destination-visual>b{text-align:center}
+  .encoding-visual>b:nth-child(4),.destination-visual>b:nth-child(4),.destination-visual>b:nth-child(8){display:none}
+  .entry-panel .lab-switch,.lab-destinations .lab-switch{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .entry-panel .lab-switch button,.lab-destinations .lab-switch button{width:100%;white-space:normal;min-height:44px;font-size:12px;padding:8px}
+  .lab-stages{width:100%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+  .lab-stages button{min-width:0;padding:7px 2px;font-size:0;min-height:44px}
+  .lab-stages button small{font-size:14px;line-height:1.5}.lab-step-controls{width:100%;justify-content:space-between}
+  .lab-journey{gap:10px;margin:16px 0}.lab-map>.mobile-scroll-hint{margin:10px 12px 4px;font-size:11px}
+  .neuron-page .lab-copy,.neuron-page .term-cards p,.neuron-page .lab-takeaway{font-size:12px;line-height:1.6}
+  .neuron-page>.panel{padding:16px}.neuron-page .term-cards{gap:12px;margin-top:14px}
+  .neuron-page .encoding-copy{font-size:12px}
+}
+
+.flow-short-label{display:none}
+@media(max-width:700px){
+  .encoding-visual,.destination-visual{display:flex;flex-wrap:nowrap;gap:3px;align-items:stretch}
+  .encoding-chip,.destination-visual>span{flex:1;min-width:0;padding:9px 2px;font-size:10px;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}
+  .encoding-visual>b,.destination-visual>b{display:flex!important;align-items:center;justify-content:center;flex:0 0 8px;font-size:11px}
+  .flow-full-label{display:none}.flow-short-label{display:inline}
+}

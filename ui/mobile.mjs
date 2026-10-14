@@ -58,4 +58,34 @@ export function installMobileSupport(doc = globalThis.document, win = globalThis
     region.setAttribute('role', 'region');
     region.setAttribute('aria-label', region.classList.contains('network-scroll') ? 'Neural network diagram. Scroll horizontally to explore all four stages.' : 'Data table. Scroll horizontally to see more columns.');
   });
+  installScrollGuides(doc, win);
+}
+
+// A visible, keyboard-operable horizontal position control for wide content.
+export function installScrollGuides(doc=globalThis.document, win=globalThis.window) {
+  if (!doc?.createElement || !win) return;
+  let count=0;
+  doc.querySelectorAll('.table-wrap, .network-scroll, .neuron-scroll').forEach(region=>{
+    if(region.dataset.scrollGuideInstalled)return;
+    region.dataset.scrollGuideInstalled='true';
+    if(!region.id)region.id=`horizontal-region-${++count}`;
+    const guide=doc.createElement('div'),label=doc.createElement('label'),slider=doc.createElement('input');
+    guide.className='scroll-guide';slider.type='range';slider.min='0';slider.max='100';slider.step='1';slider.value='0';
+    slider.id=`${region.id}-position`;label.htmlFor=slider.id;label.textContent='↔ Swipe or drag to explore';
+    slider.setAttribute('aria-label','Horizontal scroll position');slider.setAttribute('aria-controls',region.id);
+    guide.append(label,slider);region.insertAdjacentElement('afterend',guide);
+    const sync=()=>{
+      const extent=Math.max(0,region.scrollWidth-region.clientWidth);
+      guide.hidden=extent<2;
+      slider.value=String(extent?Math.round(region.scrollLeft/extent*100):0);
+      slider.setAttribute('aria-valuetext',`${slider.value}% across the content`);
+    };
+    slider.addEventListener('input',()=>{
+      region.scrollLeft=Number(slider.value)/100*Math.max(0,region.scrollWidth-region.clientWidth);sync();
+    });
+    region.addEventListener('scroll',sync,{passive:true});win.addEventListener?.('resize',sync);
+    if(win.ResizeObserver)new win.ResizeObserver(sync).observe(region);
+    if(win.MutationObserver)new win.MutationObserver(sync).observe(region,{childList:true,subtree:true});
+    sync();
+  });
 }

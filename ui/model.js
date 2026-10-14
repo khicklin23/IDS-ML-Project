@@ -1,4 +1,4 @@
-import {installMobileSupport} from './mobile.mjs?v=sona-mobile-1';
+import {installMobileSupport} from './mobile.mjs?v=sona-mobile-compact-1';
 installMobileSupport();
 import {validateReport, escapeHTML as esc, human, count} from './data.mjs?v=sona-prod-polish-1';
 const $ = id => document.getElementById(id);

@@ -1,4 +1,4 @@
-import {installMobileSupport} from './mobile.mjs?v=sona-mobile-1';
+import {installMobileSupport} from './mobile.mjs?v=sona-mobile-compact-1';
 installMobileSupport();
 import {colors, human, count, percent, escapeHTML as esc, elapsed, bytes, validateReport, selectEvidence, incidentGroups, modelName} from './data.mjs?v=sona-filter-labels-1';
 
@@ -57,9 +57,11 @@ function renderPerformance() {
   const weakest = supported.reduce((a,b)=>perClass[a].f1 <= perClass[b].f1 ? a : b, supported[0]);
   $('class-note').textContent = missing.length ? `No held-out examples for ${missing.map(human).join(', ')}. Metrics for those classes do not establish coverage.` : weakest ? `Lowest F1: ${human(weakest)} (${percent(perClass[weakest].f1)}). Precision ${percent(perClass[weakest].precision)} · recall ${percent(perClass[weakest].recall)} · ${count(perClass[weakest].support)} examples.` : 'No held-out class support available.';
   const names = mc.class_names, matrix = mc.test_metrics.confusion_matrix;
-  $('confusion').innerHTML = `<table class="matrix"><caption class="sr-only">Ground-truth rows, predicted columns; held-out classification counts</caption><thead><tr><th scope="col">Actual ↓<br>Predicted →</th>${names.map(name=>`<th scope="col">${esc(human(name))}</th>`).join('')}</tr></thead><tbody>${matrix.map((row,i)=>{
+  const shortNames={benign:'Normal',port_scan:'Scan',auth_bruteforce:'Auth',beaconing:'Beacon',service_flood:'Flood',outbound_transfer:'Transfer'};
+  const matrixLabel=name=>`<span class="matrix-full-label">${esc(human(name))}</span><span class="matrix-short-label" aria-hidden="true">${shortNames[name]??esc(human(name))}</span>`;
+  $('confusion').innerHTML = `<table class="matrix"><caption class="sr-only">Ground-truth rows, predicted columns; held-out classification counts</caption><thead><tr><th scope="col">Actual ↓<br>Predicted →</th>${names.map(name=>`<th scope="col" aria-label="${esc(human(name))}" title="${esc(human(name))}">${matrixLabel(name)}</th>`).join('')}</tr></thead><tbody>${matrix.map((row,i)=>{
     const total = row.reduce((sum,n)=>sum+n,0);
-    return `<tr><th scope="row">${esc(human(names[i]))}</th>${row.map((value,j)=>`<td tabindex="0" class="${i===j?'diagonal':''}" style="background:rgba(${i===j?'46,113,185':'184,120,76'},${.08 + .65*(total?value/total:0)})" title="${esc(`Actual ${human(names[i])} → predicted ${human(names[j])}: ${count(value)} (${percent(total?value/total:0)} of row)`)}">${count(value)}</td>`).join('')}</tr>`;
+    return `<tr><th scope="row" aria-label="${esc(human(names[i]))}" title="${esc(human(names[i]))}">${matrixLabel(names[i])}</th>${row.map((value,j)=>`<td tabindex="0" class="${i===j?'diagonal':''}" style="background:rgba(${i===j?'46,113,185':'184,120,76'},${.08 + .65*(total?value/total:0)})" title="${esc(`Actual ${human(names[i])} → predicted ${human(names[j])}: ${count(value)} (${percent(total?value/total:0)} of row)`)}">${count(value)}</td>`).join('')}</tr>`;
   }).join('')}</tbody></table>`;
   const manifest=report.dataset.manifest, splits=report.dataset.split_sizes;
   const compositionRow=([name,n])=>`<div class="composition-row"><span>${esc(human(name))}</span>${bar(manifest.row_count ? n/manifest.row_count : 0,colors[Math.max(0,names.indexOf(name))%colors.length])}<span>${count(n)}</span></div>`;

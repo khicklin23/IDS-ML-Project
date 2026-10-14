@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {installMobileSupport} from '../mobile.mjs';
+import {installMobileSupport,installScrollGuides} from '../mobile.mjs';
 function fixture(){
   const events={},viewportEvents={};
   const doc={addEventListener:(name,fn)=>events[name]=fn,querySelectorAll:()=>[]};
@@ -34,4 +34,23 @@ test('keyboard help positions against the visible viewport when zoomed',()=>{
   const {events,win,button}=fixture();win.visualViewport={width:240,height:400,offsetLeft:20,offsetTop:30};
   const b=button();b.matches=()=>true;events.focusin({target:b});
   assert.equal(b.tip.style.width,'208px');assert.equal(b.tip.style.left,'36px');assert.equal(b.tip.style.top,'274px');
+});
+
+test('horizontal guide reflects scrolling, supports dragging and hides when content fits',()=>{
+  class Node {
+    constructor(){this.events={};this.attributes={};this.dataset={};this.children=[];}
+    setAttribute(name,value){this.attributes[name]=value;}
+    append(...nodes){this.children.push(...nodes);}
+    addEventListener(name,handler){this.events[name]=handler;}
+    insertAdjacentElement(position,node){this.guide=node;}
+  }
+  const region=new Node();region.scrollWidth=900;region.clientWidth=300;region.scrollLeft=0;
+  const events={},doc={createElement:()=>new Node(),querySelectorAll:()=>[region]},win={addEventListener:(name,fn)=>events[name]=fn};
+  installScrollGuides(doc,win);
+  const guide=region.guide,slider=guide.children[1];
+  assert.equal(guide.hidden,false);assert.equal(slider.value,'0');
+  slider.value='50';slider.events.input();assert.equal(region.scrollLeft,300);
+  region.scrollLeft=600;region.events.scroll();assert.equal(slider.value,'100');
+  region.clientWidth=900;events.resize();assert.equal(guide.hidden,true);
+  installScrollGuides(doc,win);assert.equal(region.guide,guide);
 });

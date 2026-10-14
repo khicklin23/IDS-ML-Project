@@ -1,4 +1,4 @@
-import {installMobileSupport} from './mobile.mjs?v=sona-mobile-1';
+import {installMobileSupport} from './mobile.mjs?v=sona-mobile-compact-1';
 installMobileSupport();
 import {versionNotes, validateVersions, selectedSummary} from './versions-data.mjs?v=sona-prod-polish-1';
 import {escapeHTML as esc, human, count, percent, modelName} from './data.mjs?v=sona-prod-polish-1';
